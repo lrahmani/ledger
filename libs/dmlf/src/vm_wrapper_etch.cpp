@@ -25,49 +25,66 @@
 namespace fetch {
 namespace dmlf {
 
-std::vector<std::string> VmWrapperEtch::Setup(const Flags & /*flags*/)
+std::vector<std::string> VmWrapperEtch::Setup(const Flags &/*flags*/)
 {
-  module_ = VmFactory::GetModule(VmFactory::USE_SMART_CONTRACTS);  // Set according to flags
+  module_ = VmFactory::GetModule(VmFactory::USE_SMART_CONTRACTS); // Set according to flags
   status_ = VmWrapperInterface::WAITING;
   return std::vector<std::string>();
 }
 std::vector<std::string> VmWrapperEtch::Load(std::string source)
 {
-  status_                       = VmWrapperInterface::COMPILING;
-  command_                      = source;
-  fetch::vm::SourceFiles files  = {{"default.etch", source}};
-  auto                   errors = VmFactory::Compile(module_, files, *executable_);
+  // Create executable
+  status_ = VmWrapperInterface::COMPILING;
+  command_ = source;
+  fetch::vm::SourceFiles files = {{"default.etch", source}};  
+  auto errors =  VmFactory::Compile(module_, files, *executable_);
 
-  if (!errors.empty())
-  {
+  if (!errors.empty()) {
     status_ = VmWrapperInterface::FAILED_COMPILATION;
+    if (errorOutputHandler_ != nullptr)
+    {
+      std::for_each(errors.begin(), errors.end(), errorOutputHandler_);
+    }
     return errors;
   }
 
   // Create the VM instance
   vm_ = std::make_unique<VM>(module_.get());
   vm_->AttachOutputDevice(VM::STDOUT, outputStream_);
+  vm_->SetIOObserver(persistent_);
   status_ = VmWrapperInterface::COMPILED;
   return errors;
 }
 void VmWrapperEtch::Execute(const std::string &entrypoint, const Params & /*params*/)
 {
   status_ = VmWrapperInterface::RUNNING;
-  std::string        error;
-  fetch::vm::Variant output;
-  outputStream_ = std::stringstream();  // Clear the output stream
+  std::string error;
+  fetch::vm::Variant     output;
+  outputStream_ = std::stringstream(); // Clear the output stream
   /*auto result = */ vm_->Execute(*executable_, entrypoint, error, output);
 
   DoOutput();
+  if (error == "")
+  {
+    status_ = VmWrapperInterface::COMPLETED;
+  }
+  else 
+  {
+    status_ = VmWrapperInterface::FAILED_RUN;
+    if (errorOutputHandler_ != nullptr)
+    {
+      errorOutputHandler_(error);
+    }
+  }
 
-  status_ = VmWrapperInterface::COMPLETED;
 }
 
 void VmWrapperEtch::DoOutput()
 {
+  if (outputHandler_ == nullptr) return;
+
   std::string line;
-  while (std::getline(outputStream_, line))
-  {
+  while (std::getline(outputStream_, line)) {
     outputHandler_(line);
   }
 }
@@ -77,8 +94,10 @@ void VmWrapperEtch::SetStdout(OutputHandler handler)
   outputHandler_ = handler;
 }
 
-void VmWrapperEtch::SetStderr(OutputHandler /*handler*/)
-{}
+void VmWrapperEtch::SetStderr(OutputHandler handler)
+{
+  errorOutputHandler_ = handler;
+}
 
 }  // namespace dmlf
 }  // namespace fetch
