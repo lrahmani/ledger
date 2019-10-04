@@ -41,7 +41,7 @@ namespace {
   using VmFactory = fetch::vm_modules::VMFactory;
 }
 
-bool LocalVmLauncher::CreateProgram(std::string const& name, std::string const& source)
+bool LocalVmLauncher::CreateProgram(std::string const &name, std::string const &source)
 {
   if (HasProgram(name) ) 
   {

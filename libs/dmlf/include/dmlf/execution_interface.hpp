@@ -43,19 +43,19 @@ public:
   using Returned    = int;//fetch::network::PromiseOf<Result>;
   //using Params      = std::vector<Artifact>;
 
-  virtual Returned CreateExecutable(const Target &target, const Name &execName, const SourceFiles &sources) = 0;
-  virtual Returned DeleteExecutable(const Target &target, const Name &execName) = 0;
+  virtual Returned CreateExecutable(Target const &target, Name const &execName, SourceFiles const &sources) = 0;
+  virtual Returned DeleteExecutable(Target const &target, Name const &execName) = 0;
   
-  virtual Returned CreateState(const Target &target, const Name &stateName) = 0;
-  virtual Returned CopyState(const Target &target, const Name &srcName, const Name &newName) = 0;
-  virtual Returned DeleteState(const Target &target, const Name &stateName) = 0;
+  virtual Returned CreateState(Target const &target, Name const &stateName) = 0;
+  virtual Returned CopyState(Target const &target, Name const &srcName, Name const &newName) = 0;
+  virtual Returned DeleteState(Target const &target, Name const &stateName) = 0;
   
   virtual Returned Run(Target const &target, Name const &execName, Name const &stateName, std::string const &entrypoint) = 0;
 
-  ExecutionInterface(const ExecutionInterface &other) = delete;
-  ExecutionInterface &operator=(const ExecutionInterface &other) = delete;
-  bool operator==(const ExecutionInterface &other) = delete;
-  bool operator<(const ExecutionInterface &other) = delete;
+  ExecutionInterface(ExecutionInterface const &other) = delete;
+  ExecutionInterface &operator=(ExecutionInterface const &other) = delete;
+  bool operator==(ExecutionInterface const &other) = delete;
+  bool operator<(ExecutionInterface const &other) = delete;
 protected:
 private:
 };

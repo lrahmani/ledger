@@ -37,9 +37,15 @@ LocalExecutionInterface::LocalExecutionInterface()
 {  
 }
 
-Returned LocalExecutionInterface::CreateExecutable(Target const  &/*target*/, const Name &execName, const SourceFiles &sources)
+Returned LocalExecutionInterface::CreateExecutable(Target const &target, Name const &execName, SourceFiles const &sources)
 {
-  if (executables_.find(execName) != executables_.cend()) {
+  if (!AmTarget(target))
+  {
+    return GetWrongTargetError();
+  }
+
+  if (executables_.find(execName) != executables_.end())
+  {
     return 1;
   }
 
@@ -47,7 +53,8 @@ Returned LocalExecutionInterface::CreateExecutable(Target const  &/*target*/, co
 
   auto errors = VmFactory::Compile(module_, sources, newExecutable);
 
-  if (!errors.empty()) {
+  if (!errors.empty())
+  {
     return 1;
   }
 
@@ -55,10 +62,14 @@ Returned LocalExecutionInterface::CreateExecutable(Target const  &/*target*/, co
   return 0;
 }
 
-Returned LocalExecutionInterface::DeleteExecutable(const Target &/*target*/, const Name &execName)
+Returned LocalExecutionInterface::DeleteExecutable(Target const &target, const Name &execName)
 {
-  auto count = executables_.erase(execName);
+  if (!AmTarget(target))
+  {
+    return GetWrongTargetError();
+  }
 
+  auto count = executables_.erase(execName);
   if (count == 0)
   {
     return 1;
@@ -67,8 +78,12 @@ Returned LocalExecutionInterface::DeleteExecutable(const Target &/*target*/, con
   return 0;
 }
 
-Returned LocalExecutionInterface::CreateState(const Target &/*target*/, const Name &stateName)
+Returned LocalExecutionInterface::CreateState(const Target &target, const Name &stateName)
 {
+  if (!AmTarget(target))
+  {
+    return GetWrongTargetError();
+  }
   if (states_.find(stateName) != states_.end()) 
   {
     return 1;
@@ -77,8 +92,12 @@ Returned LocalExecutionInterface::CreateState(const Target &/*target*/, const Na
   states_.emplace(stateName, State());
   return 0;
 }
-Returned LocalExecutionInterface::CopyState(const Target &/*target*/, const Name &srcName, const Name &newName)
+Returned LocalExecutionInterface::CopyState(const Target &target, const Name &srcName, const Name &newName)
 {
+  if (!AmTarget(target))
+  {
+    return GetWrongTargetError();
+  }
   auto it = states_.find(srcName);
 
   if (it == states_.end()) 
@@ -96,8 +115,12 @@ Returned LocalExecutionInterface::CopyState(const Target &/*target*/, const Name
   states_.emplace(newName, source.DeepCopy());
   return 0;
 }
-Returned LocalExecutionInterface::DeleteState(const Target &/*target*/, const Name &stateName) 
+Returned LocalExecutionInterface::DeleteState(Target const &target, Name const &stateName) 
 {
+  if (!AmTarget(target))
+  {
+    return GetWrongTargetError();
+  }
   auto count = states_.erase(stateName);
 
   if (count == 0) 
@@ -107,8 +130,12 @@ Returned LocalExecutionInterface::DeleteState(const Target &/*target*/, const Na
   return 0;
 }
 
-Returned LocalExecutionInterface::Run(const Target &/*target*/, const Name &execName, const Name &stateName, std::string const &entrypoint)
+Returned LocalExecutionInterface::Run(Target const &target, Name const &execName, Name const &stateName, std::string const &entrypoint)
 {
+  if (!AmTarget(target))
+  {
+    return GetWrongTargetError();
+  }
   auto execIt = executables_.find(execName);
   if (execIt == executables_.end())
   {
@@ -137,6 +164,16 @@ Returned LocalExecutionInterface::Run(const Target &/*target*/, const Name &exec
   }
 
   return 0;
+}
+
+bool LocalExecutionInterface::AmTarget(std::string const &target) const
+{
+  return myNames_.find(target) != myNames_.end();
+}
+
+Returned LocalExecutionInterface::GetWrongTargetError() const
+{
+  return 1;
 }
 
 } // namespace dmlf

@@ -41,27 +41,31 @@ public:
   using VmFactory = fetch::vm_modules::VMFactory;
   using State = VmPersistent;
 
-  Returned CreateExecutable(const Target &target, const Name &execName, const SourceFiles &sources) override;
-  Returned DeleteExecutable(const Target &target, const Name &execName) override;
+  Returned CreateExecutable(Target const &target, Name const &execName, SourceFiles const &sources) override;
+  Returned DeleteExecutable(Target const &target, Name const &execName) override;
   
-  Returned CreateState(const Target &target, const Name &stateName) override;
-  Returned CopyState(const Target &target, const Name &srcName, const Name &newName) override;
-  Returned DeleteState(const Target &target, const Name &stateName) override;
+  Returned CreateState(Target const &target, Name const &stateName) override;
+  Returned CopyState(Target const &target, Name const &srcName, Name const &newName) override;
+  Returned DeleteState(Target const &target, Name const &stateName) override;
   
-  Returned Run(const Target &target, const Name &execName, const Name &stateName, std::string const &entrypoint) override;
+  Returned Run(Target const &target, Name const &execName, Name const &stateName, std::string const &entrypoint) override;
 
-  LocalExecutionInterface(const LocalExecutionInterface &other) = delete;
-  LocalExecutionInterface &operator=(const LocalExecutionInterface &other) = delete;
-  bool operator==(const LocalExecutionInterface &other) = delete;
-  bool operator<(const LocalExecutionInterface &other) = delete;
+  LocalExecutionInterface(LocalExecutionInterface const &other) = delete;
+  LocalExecutionInterface &operator=(LocalExecutionInterface const &other) = delete;
+  bool operator==(LocalExecutionInterface const &other) = delete;
+  bool operator<(LocalExecutionInterface const &other) = delete;
 
 private:
-  // Missing my names
+  bool AmTarget(std::string const &target) const;
+  Returned GetWrongTargetError() const;
+
   std::unordered_map<std::string, Executable> executables_;
   std::unordered_map<std::string, State> states_;
 
   std::shared_ptr<fetch::vm::Module> module_ = VmFactory::GetModule(VmFactory::USE_SMART_CONTRACTS);
   VM vm_;
+
+  std::unordered_set<std::string> myNames_ = {"local://", ""};
 };
 
 } // namespace dmlf
