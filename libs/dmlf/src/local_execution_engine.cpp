@@ -30,6 +30,9 @@ namespace dmlf {
 
 namespace {
   using Returned = LocalExecutionInterface::Returned;
+  using Variant = Returned::Variant;
+  using Stage = Returned::Error::Stage;
+  using Code  = Returned::Error::Code;
 }
 
 LocalExecutionInterface::LocalExecutionInterface()
@@ -46,20 +49,21 @@ Returned LocalExecutionInterface::CreateExecutable(Target const &target, Name co
 
   if (executables_.find(execName) != executables_.end())
   {
-    return 1;
+    return GetWrongNameError(Code::BAD_EXECUTABLE);
   }
 
   Executable newExecutable;
-
-  auto errors = VmFactory::Compile(module_, sources, newExecutable);
+  std::vector<std::string> errors = VmFactory::Compile(module_, sources, newExecutable);
 
   if (!errors.empty())
   {
-    return 1;
+    std::stringstream ss;
+    std::for_each(errors.begin(), errors.end(), [&ss] (std::string const &line) { ss << line; });
+    return Returned(Variant(), Error(Stage::COMPILE, Code::COMPILATION_ERROR), ss.str());
   }
 
   executables_.emplace(execName, std::move(newExecutable));
-  return 0;
+  return Success(Stage::COMPILE);
 }
 
 Returned LocalExecutionInterface::DeleteExecutable(Target const &target, const Name &execName)
@@ -72,10 +76,10 @@ Returned LocalExecutionInterface::DeleteExecutable(Target const &target, const N
   auto count = executables_.erase(execName);
   if (count == 0)
   {
-    return 1;
+    return GetWrongNameError(Code::BAD_EXECUTABLE);
   }
 
-  return 0;
+  return Success(Stage::ENGINE);
 }
 
 Returned LocalExecutionInterface::CreateState(const Target &target, const Name &stateName)
@@ -86,34 +90,34 @@ Returned LocalExecutionInterface::CreateState(const Target &target, const Name &
   }
   if (states_.find(stateName) != states_.end()) 
   {
-    return 1;
+    return GetWrongNameError(Code::BAD_STATE);
   }
 
   states_.emplace(stateName, State());
-  return 0;
+  return Success(Stage::ENGINE);
 }
-Returned LocalExecutionInterface::CopyState(const Target &target, const Name &srcName, const Name &newName)
+Returned LocalExecutionInterface::CopyState(const Target &target, const Name &stateName, const Name &destName)
 {
   if (!AmTarget(target))
   {
     return GetWrongTargetError();
   }
-  auto it = states_.find(srcName);
+  auto it = states_.find(stateName);
 
   if (it == states_.end()) 
   {
-    return 1;
+    return GetWrongNameError(Code::BAD_STATE);
   }
 
   const State &source = it->second;
 
-  if (states_.find(newName) != states_.end()) 
+  if (states_.find(destName) != states_.end()) 
   {
-    return 1;
+    return GetWrongNameError(Code::BAD_DESTINATION);
   }
 
-  states_.emplace(newName, source.DeepCopy());
-  return 0;
+  states_.emplace(destName, source.DeepCopy());
+  return Success(Stage::ENGINE);
 }
 Returned LocalExecutionInterface::DeleteState(Target const &target, Name const &stateName) 
 {
@@ -125,9 +129,9 @@ Returned LocalExecutionInterface::DeleteState(Target const &target, Name const &
 
   if (count == 0) 
   {
-    return 1;
+    return GetWrongNameError(Code::BAD_STATE);
   }
-  return 0;
+  return Success(Stage::ENGINE);
 }
 
 Returned LocalExecutionInterface::Run(Target const &target, Name const &execName, Name const &stateName, std::string const &entrypoint)
@@ -139,14 +143,14 @@ Returned LocalExecutionInterface::Run(Target const &target, Name const &execName
   auto execIt = executables_.find(execName);
   if (execIt == executables_.end())
   {
-    return 1;
+    return GetWrongNameError(Code::BAD_EXECUTABLE);
   }
   Executable const &executable = execIt->second; 
 
   auto stateIt = states_.find(stateName);
   if (stateIt == states_.end())
   {
-    return 1;
+    return GetWrongNameError(Code::BAD_STATE);
   }
   State &state = stateIt->second; 
   vm_.SetIOObserver(state);
@@ -160,10 +164,10 @@ Returned LocalExecutionInterface::Run(Target const &target, Name const &execName
 
   if (!runTimeError.empty() || thereWasAnError) 
   {
-    return 1;
+    return Returned(runOutput, Error(Stage::RUNNING, Code::RUNTIME_ERROR), runTimeError + '\n' + stdOutput.str());
   }
 
-  return 0;
+  return Returned(runOutput, Error(Stage::RUNNING, Code::SUCCESS), stdOutput.str());
 }
 
 bool LocalExecutionInterface::AmTarget(std::string const &target) const
@@ -173,7 +177,17 @@ bool LocalExecutionInterface::AmTarget(std::string const &target) const
 
 Returned LocalExecutionInterface::GetWrongTargetError() const
 {
-  return 1;
+  return Returned(Variant(), Error(Stage::ENGINE, Code::BAD_TARGET), "");
+}
+
+Returned LocalExecutionInterface::GetWrongNameError(Code code) const
+{
+  return Returned(Variant(), Error(Stage::ENGINE, code), "");
+}
+
+Returned LocalExecutionInterface::Success(Stage stage) const
+{
+  return Returned(Variant(), Error(stage, Code::SUCCESS), "");
 }
 
 } // namespace dmlf

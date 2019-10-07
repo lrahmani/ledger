@@ -40,12 +40,13 @@ public:
   using VM = fetch::vm::VM;
   using VmFactory = fetch::vm_modules::VMFactory;
   using State = VmPersistent;
+  using Error = ExecutionResult::Error;
 
   Returned CreateExecutable(Target const &target, Name const &execName, SourceFiles const &sources) override;
   Returned DeleteExecutable(Target const &target, Name const &execName) override;
   
   Returned CreateState(Target const &target, Name const &stateName) override;
-  Returned CopyState(Target const &target, Name const &srcName, Name const &newName) override;
+  Returned CopyState(Target const &target, Name const &stateName, Name const &destName) override;
   Returned DeleteState(Target const &target, Name const &stateName) override;
   
   Returned Run(Target const &target, Name const &execName, Name const &stateName, std::string const &entrypoint) override;
@@ -58,6 +59,8 @@ public:
 private:
   bool AmTarget(std::string const &target) const;
   Returned GetWrongTargetError() const;
+  Returned GetWrongNameError(Error::Code code) const;
+  Returned Success(Error::Stage stage) const;
 
   std::unordered_map<std::string, Executable> executables_;
   std::unordered_map<std::string, State> states_;
