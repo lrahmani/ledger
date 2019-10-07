@@ -17,6 +17,7 @@
 //
 //------------------------------------------------------------------------------
 
+#include <string>
 
 namespace fetch {
 namespace dmlf {
@@ -45,8 +46,8 @@ public:
     RUNTIME_ERROR
   };
 
-  explicit ExecutionErrorMessage(Stage stage, Code code = Code::SUCCESS)
-  :stage_(stage), code_(code)
+  explicit ExecutionErrorMessage(Stage stage, Code code, std::string const &message )
+  :stage_(stage), code_(code), message_(message)
   {
   }
 
@@ -58,10 +59,15 @@ public:
   {
     return code_;
   }
+  std::string message()  const
+  {
+    return message_;
+  }
 
 private:
   Stage stage_;
   Code code_;
+  std::string message_;
 };
 
 }  // namespace dmlf

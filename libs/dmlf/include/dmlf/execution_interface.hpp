@@ -41,7 +41,7 @@ public:
   using Target      = std::string;
   using Artifact    = fetch::vm::Variant;
   using Result      = ExecutionResult;
-  using Returned    = ExecutionResult;//fetch::network::PromiseOf<Result>;
+  using Returned    = fetch::network::PromiseOf<ExecutionResult>;
   //using Params      = std::vector<Artifact>;
 
   virtual Returned CreateExecutable(Target const &target, Name const &execName, SourceFiles const &sources) = 0;
