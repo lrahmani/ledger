@@ -17,6 +17,9 @@
 //
 //------------------------------------------------------------------------------
 
+#include "core/serializers/base_types.hpp"
+#include "core/serializers/main_serializer.hpp"
+
 #include <string>
 
 namespace fetch {
@@ -24,8 +27,11 @@ namespace dmlf {
 
 class ExecutionErrorMessage
 {
+  template <typename T, typename D>
+  friend struct serializers::MapSerializer;
+
 public:
-  enum class Stage
+  enum class Stage : uint32_t
   {
     ENGINE = 10,
     COMPILE,
@@ -33,7 +39,7 @@ public:
     NETWORK,
   };
 
-  enum class Code
+  enum class Code : uint32_t
   {
     SUCCESS = 0,
 
@@ -41,15 +47,18 @@ public:
     BAD_EXECUTABLE,
     BAD_STATE,
     BAD_DESTINATION,
-    
+
     COMPILATION_ERROR,
     RUNTIME_ERROR
   };
 
-  explicit ExecutionErrorMessage(Stage stage, Code code, std::string const &message )
-  :stage_(stage), code_(code), message_(message)
-  {
-  }
+  ExecutionErrorMessage() = default;
+  
+  explicit ExecutionErrorMessage(Stage stage, Code code, std::string message)
+    : stage_(stage)
+    , code_(code)
+    , message_(message)
+  {}
 
   Stage stage() const
   {
@@ -59,16 +68,57 @@ public:
   {
     return code_;
   }
-  std::string message()  const
+  std::string message() const
   {
     return message_;
   }
 
 private:
-  Stage stage_;
-  Code code_;
+  Stage       stage_;
+  Code        code_;
   std::string message_;
 };
 
 }  // namespace dmlf
+
+namespace serializers {
+
+template <typename D>
+struct MapSerializer<fetch::dmlf::ExecutionErrorMessage, D>
+{
+public:
+  using Type       = fetch::dmlf::ExecutionErrorMessage;
+  using DriverType = D;
+
+  static uint8_t const STAGE   = 1;
+  static uint8_t const CODE    = 2;
+  static uint8_t const MESSAGE = 3;
+
+  template <typename Constructor>
+  static void Serialize(Constructor &map_constructor, Type const &exec_err_msg)
+  {
+    uint32_t stage, code;
+    stage = static_cast<uint32_t>(exec_err_msg.stage_);
+    code = static_cast<uint32_t>(exec_err_msg.code_);
+    
+    auto map = map_constructor(3);
+    map.Append(STAGE, stage);
+    map.Append(CODE,  code);
+    map.Append(MESSAGE, exec_err_msg.message_);
+  }
+
+  template <typename MapDeserializer>
+  static void Deserialize(MapDeserializer &map, Type &exec_err_msg)
+  {
+    uint32_t stage, code;
+    
+    map.ExpectKeyGetValue(STAGE, stage);
+    map.ExpectKeyGetValue(CODE, code);
+    map.ExpectKeyGetValue(MESSAGE, exec_err_msg.message_);
+    exec_err_msg.stage_ = static_cast<dmlf::ExecutionErrorMessage::Stage>(stage);
+    exec_err_msg.code_  = static_cast<dmlf::ExecutionErrorMessage::Code>(code);
+  }
+};
+
+}  // namespace serializers
 }  // namespace fetch
