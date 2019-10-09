@@ -18,6 +18,13 @@
 //------------------------------------------------------------------------------
 
 #include "dmlf/execution_interface.hpp"
+#include "dmlf/vm_persistent.hpp"
+#include "vm/vm.hpp"
+#include "vm_modules/vm_factory.hpp"
+
+#include <map>
+#include <memory>
+#include <sstream>
 
 namespace fetch {
 namespace dmlf {
@@ -31,30 +38,69 @@ public:
   using Name        = ExecutionInterface::Name;
   using SourceFiles = ExecutionInterface::SourceFiles;
   using Target      = ExecutionInterface::Target;
-  using Artifact    = ExecutionInterface::Artifact;
-  using Result      = ExecutionInterface::Result;
-  using Returned    = ExecutionInterface::Returned;
+  using Variant    = ExecutionInterface::Variant;
+  using PromiseOfResult    = ExecutionInterface::PromiseOfResult;
   using Params      = ExecutionInterface::Params;
 
-  using Stage = ExecutionErrorMessage::Stage;
-  using Code  = ExecutionErrorMessage::Code;
+  using ErrorStage = ExecutionErrorMessage::Stage;
+  using ErrorCode  = ExecutionErrorMessage::Code;
   using Error = ExecutionResult::Error;
+  
+  // FROM LocalVmLauncher
+  using Executable = fetch::vm::Executable; // changed from using Program 
+  using VM = fetch::vm::VM;
+  using VmFactory = fetch::vm_modules::VMFactory;
+  using State = VmPersistent;
 
-  virtual Returned CreateExecutable(Target const &target, Name const &execName,
+  // FROM VmLauncherInterface
+  // Flags?
+  using VmOutputHandler = std::ostream;
+  //using Params = std::vector<std::string>; // TOFIX
+  // Program name, Error
+  using ProgramErrorHandler = std::function<void (std::string const&, std::vector<std::string>)>;
+  // Program name, VM name, State name, Error
+  using ExecuteErrorHandler = std::function<void (std::string const&, std::string const&, std::string const&, std::string const&)>;
+  
+  virtual PromiseOfResult CreateExecutable(Target const &host, Name const &execName,
                                     SourceFiles const &sources)                 override;
-  virtual Returned DeleteExecutable(Target const &target, Name const &execName) override;
+  virtual PromiseOfResult DeleteExecutable(Target const &host, Name const &execName) override;
 
-  virtual Returned CreateState(Target const &target, Name const &stateName)                  override;
-  virtual Returned CopyState(Target const &target, Name const &srcName, Name const &newName) override;
-  virtual Returned DeleteState(Target const &target, Name const &stateName)                  override;
+  virtual PromiseOfResult CreateState(Target const &host, Name const &stateName)                  override;
+  virtual PromiseOfResult CopyState(Target const &host, Name const &srcName, Name const &newName) override;
+  virtual PromiseOfResult DeleteState(Target const &host, Name const &stateName)                  override;
 
-  virtual Returned Run(Target const &target, Name const &execName, Name const &stateName,
+  virtual PromiseOfResult Run(Target const &host, Name const &execName, Name const &stateName,
                        std::string const &entrypoint) override;
+  
+  // utilities
+  bool CreateTarget(Target const &host);
+  bool HasTarget(Target const &host);
 
   LocalExecutionEngine(LocalExecutionEngine const &other) = delete;
   LocalExecutionEngine &operator=(LocalExecutionEngine const &other)  = delete;
   bool                operator==(LocalExecutionEngine const &other) = delete;
   bool                operator<(LocalExecutionEngine const &other)  = delete;
+
+private:
+  using PromiseFulfiller = std::shared_ptr<service::details::PromiseImplementation>;
+
+  bool HasExecutable(Target const &host, Name const &execName);
+  bool HasState(Target const &host, Name const &stateName);
+  PromiseOfResult MakeErrorResult(Error err);
+  PromiseOfResult MakeErrorResult(ErrorCode err_code, std::string err_msg);
+  PromiseOfResult MakeSuccessResult();
+
+  PromiseFulfiller CreatePromise();
+  PromiseOfResult FulfillPromise(PromiseFulfiller promise, ExecutionResult res);
+
+  std::map<std::string, std::shared_ptr<Executable>> executables_;
+  std::map<std::string, std::shared_ptr<VM>> vms_;
+  std::map<std::string, std::shared_ptr<State>> states_;
+  ProgramErrorHandler programErrorHandler_ = nullptr;
+  ExecuteErrorHandler executeErrorhandler_ = nullptr;
+  
+  std::shared_ptr<fetch::vm::Module> module_ = VmFactory::GetModule(VmFactory::USE_SMART_CONTRACTS);
+  
 };
 
 }  // namespace dmlf
