@@ -33,7 +33,7 @@ class ExecutionResult
 public:
   using Variant = fetch::vm::Variant;
   using Error   = ExecutionErrorMessage;
-  
+
   ExecutionResult() = default;
 
   ExecutionResult(Variant output, Error error, std::string console)

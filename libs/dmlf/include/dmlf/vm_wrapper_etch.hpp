@@ -30,7 +30,7 @@
 namespace fetch {
 namespace dmlf {
 
-class VmWrapperEtch: public VmWrapperInterface
+class VmWrapperEtch : public VmWrapperInterface
 {
 public:
   using OutputHandler = VmWrapperInterface::OutputHandler;
@@ -39,8 +39,8 @@ public:
   using Flags         = VmWrapperInterface::Flags;
   using Status        = VmWrapperInterface::Status;
 
-  using VmFactory = fetch::vm_modules::VMFactory;
-  using VM = fetch::vm::VM;
+  using VmFactory  = fetch::vm_modules::VMFactory;
+  using VM         = fetch::vm::VM;
   using Executable = fetch::vm::Executable;
 
   VmWrapperEtch()           = default;
@@ -65,21 +65,20 @@ public:
 protected:
 private:
   void DoOutput();
-  
-  Status            status_             = VmWrapperInterface::UNCONFIGURED;
+
+  Status            status_ = VmWrapperInterface::UNCONFIGURED;
   std::stringstream outputStream_;
-  OutputHandler     outputHandler_      = nullptr;
+  OutputHandler     outputHandler_ = nullptr;
   std::stringstream errorStream_;
   OutputHandler     errorOutputHandler_ = nullptr;
-  
-  std::string         command_    = "";
-  std::unique_ptr<VM> vm_         = nullptr;
+
+  std::string         command_ = "";
+  std::unique_ptr<VM> vm_      = nullptr;
   VmPersistent        persistent_;
 
-  std::shared_ptr<fetch::vm::Module> module_ = nullptr;
-  std::unique_ptr<Executable>        executable_ = std::make_unique<Executable>(); 
+  std::shared_ptr<fetch::vm::Module> module_     = nullptr;
+  std::unique_ptr<Executable>        executable_ = std::make_unique<Executable>();
 };
 
-
-} // namespace dmlf
-} // namespace fetch
+}  // namespace dmlf
+}  // namespace fetch

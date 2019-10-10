@@ -553,82 +553,82 @@ public:
   {
     auto map = map_constructor(3);
     map.Append(TYPEID, variant.type_id);
-   
+
     // empty variant
     if (variant.type_id == vm::TypeIds::Unknown)
     {
       return;
     }
-    
+
     // primitive type variant
     if (variant.IsPrimitive())
     {
-      switch(variant.type_id) {
-        case vm::TypeIds::Bool:
-        case vm::TypeIds::UInt8:
-        {
-          uint8_t val = variant.primitive.ui8;
-          map.Append(PRIMITIVE, val);
-          break;
-        }
-        case vm::TypeIds::Int8:
-        {
-          int8_t val = variant.primitive.i8;
-          map.Append(PRIMITIVE, val);
-          break;
-        }
-        case vm::TypeIds::Int16:
-        {
-          int16_t val = variant.primitive.i16;
-          map.Append(PRIMITIVE, val);
-          break;
-        }
-        case vm::TypeIds::UInt16:
-        {
-          uint16_t val = variant.primitive.ui16;
-          map.Append(PRIMITIVE, val);
-          break;
-        }
-        case vm::TypeIds::Int32:
-        {
-          int32_t val = variant.primitive.i32;
-          map.Append(PRIMITIVE, val);
-          break;
-        }
-        case vm::TypeIds::UInt32:
-        {
-          uint32_t val = variant.primitive.ui32;
-          map.Append(PRIMITIVE, val);
-          break;
-        }
-        case vm::TypeIds::Int64:
-        {
-          int64_t val = variant.primitive.i64;
-          map.Append(PRIMITIVE, val);
-          break;
-        }
-        case vm::TypeIds::UInt64:
-        {
-          uint64_t val = variant.primitive.ui64;
-          map.Append(PRIMITIVE, val);
-          break;
-        }
-        case vm::TypeIds::Float32:
-        case vm::TypeIds::Fixed32:
-        {
-          float val = variant.primitive.f32;
-          map.Append(PRIMITIVE, val);
-          break;
-        }
-        case vm::TypeIds::Float64:
-        case vm::TypeIds::Fixed64:
-        {
-          double val = variant.primitive.f64;
-          map.Append(PRIMITIVE, val);
-          break;
-        }
-        default:
-          ;
+      switch (variant.type_id)
+      {
+      case vm::TypeIds::Bool:
+      case vm::TypeIds::UInt8:
+      {
+        uint8_t val = variant.primitive.ui8;
+        map.Append(PRIMITIVE, val);
+        break;
+      }
+      case vm::TypeIds::Int8:
+      {
+        int8_t val = variant.primitive.i8;
+        map.Append(PRIMITIVE, val);
+        break;
+      }
+      case vm::TypeIds::Int16:
+      {
+        int16_t val = variant.primitive.i16;
+        map.Append(PRIMITIVE, val);
+        break;
+      }
+      case vm::TypeIds::UInt16:
+      {
+        uint16_t val = variant.primitive.ui16;
+        map.Append(PRIMITIVE, val);
+        break;
+      }
+      case vm::TypeIds::Int32:
+      {
+        int32_t val = variant.primitive.i32;
+        map.Append(PRIMITIVE, val);
+        break;
+      }
+      case vm::TypeIds::UInt32:
+      {
+        uint32_t val = variant.primitive.ui32;
+        map.Append(PRIMITIVE, val);
+        break;
+      }
+      case vm::TypeIds::Int64:
+      {
+        int64_t val = variant.primitive.i64;
+        map.Append(PRIMITIVE, val);
+        break;
+      }
+      case vm::TypeIds::UInt64:
+      {
+        uint64_t val = variant.primitive.ui64;
+        map.Append(PRIMITIVE, val);
+        break;
+      }
+      case vm::TypeIds::Float32:
+      case vm::TypeIds::Fixed32:
+      {
+        float val = variant.primitive.f32;
+        map.Append(PRIMITIVE, val);
+        break;
+      }
+      case vm::TypeIds::Float64:
+      case vm::TypeIds::Fixed64:
+      {
+        double val = variant.primitive.f64;
+        map.Append(PRIMITIVE, val);
+        break;
+      }
+      default:;
       }
     }
 
@@ -636,7 +636,7 @@ public:
     else
     {
       serializers::MsgPackSerializer serializer;
-      if(!(variant.object)->SerializeTo(serializer))
+      if (!(variant.object)->SerializeTo(serializer))
       {
         throw std::runtime_error{"Object type in Variant is not serialisable"};
       }
@@ -648,90 +648,90 @@ public:
   static void Deserialize(MapDeserializer &map, Type &variant)
   {
     map.ExpectKeyGetValue(TYPEID, variant.type_id);
-    
+
     if (variant.type_id == vm::TypeIds::Unknown)
     {
       return;
     }
-    
+
     if (variant.IsPrimitive())
     {
-      switch(variant.type_id) {
-        case vm::TypeIds::Bool:
-        case vm::TypeIds::UInt8:
-        {
-          uint8_t val;
-          map.ExpectKeyGetValue(PRIMITIVE, val);
-          variant.primitive.ui8 = val;
-          break;
-        }
-        case vm::TypeIds::Int8:
-        {
-          int8_t val;
-          map.ExpectKeyGetValue(PRIMITIVE, val);
-          variant.primitive.i8 = val;
-          break;
-        }
-        case vm::TypeIds::Int16:
-        {
-          int16_t val;
-          map.ExpectKeyGetValue(PRIMITIVE, val);
-          variant.primitive.i16 = val;
-          break;
-        }
-        case vm::TypeIds::UInt16:
-        {
-          uint16_t val;
-          map.ExpectKeyGetValue(PRIMITIVE, val);
-          variant.primitive.ui16 = val;
-          break;
-        }
-        case vm::TypeIds::Int32:
-        {
-          int32_t val;
-          map.ExpectKeyGetValue(PRIMITIVE, val);
-          variant.primitive.i32 = val;
-          break;
-        }
-        case vm::TypeIds::UInt32:
-        {
-          uint32_t val;
-          map.ExpectKeyGetValue(PRIMITIVE, val);
-          variant.primitive.ui32 = val;
-          break;
-        }
-        case vm::TypeIds::Int64:
-        {
-          int64_t val;
-          map.ExpectKeyGetValue(PRIMITIVE, val);
-          variant.primitive.i64 = val;
-          break;
-        }
-        case vm::TypeIds::UInt64:
-        {
-          uint64_t val;
-          map.ExpectKeyGetValue(PRIMITIVE, val);
-          variant.primitive.ui64 = val;
-          break;
-        }
-        case vm::TypeIds::Float32:
-        case vm::TypeIds::Fixed32:
-        {
-          float val;
-          map.ExpectKeyGetValue(PRIMITIVE, val);
-          variant.primitive.f32 = val;
-          break;
-        }
-        case vm::TypeIds::Float64:
-        case vm::TypeIds::Fixed64:
-        {
-          double val;
-          map.ExpectKeyGetValue(PRIMITIVE, val);
-          variant.primitive.f64 = val;
-          break;
-        }
-        default:
-          ;
+      switch (variant.type_id)
+      {
+      case vm::TypeIds::Bool:
+      case vm::TypeIds::UInt8:
+      {
+        uint8_t val;
+        map.ExpectKeyGetValue(PRIMITIVE, val);
+        variant.primitive.ui8 = val;
+        break;
+      }
+      case vm::TypeIds::Int8:
+      {
+        int8_t val;
+        map.ExpectKeyGetValue(PRIMITIVE, val);
+        variant.primitive.i8 = val;
+        break;
+      }
+      case vm::TypeIds::Int16:
+      {
+        int16_t val;
+        map.ExpectKeyGetValue(PRIMITIVE, val);
+        variant.primitive.i16 = val;
+        break;
+      }
+      case vm::TypeIds::UInt16:
+      {
+        uint16_t val;
+        map.ExpectKeyGetValue(PRIMITIVE, val);
+        variant.primitive.ui16 = val;
+        break;
+      }
+      case vm::TypeIds::Int32:
+      {
+        int32_t val;
+        map.ExpectKeyGetValue(PRIMITIVE, val);
+        variant.primitive.i32 = val;
+        break;
+      }
+      case vm::TypeIds::UInt32:
+      {
+        uint32_t val;
+        map.ExpectKeyGetValue(PRIMITIVE, val);
+        variant.primitive.ui32 = val;
+        break;
+      }
+      case vm::TypeIds::Int64:
+      {
+        int64_t val;
+        map.ExpectKeyGetValue(PRIMITIVE, val);
+        variant.primitive.i64 = val;
+        break;
+      }
+      case vm::TypeIds::UInt64:
+      {
+        uint64_t val;
+        map.ExpectKeyGetValue(PRIMITIVE, val);
+        variant.primitive.ui64 = val;
+        break;
+      }
+      case vm::TypeIds::Float32:
+      case vm::TypeIds::Fixed32:
+      {
+        float val;
+        map.ExpectKeyGetValue(PRIMITIVE, val);
+        variant.primitive.f32 = val;
+        break;
+      }
+      case vm::TypeIds::Float64:
+      case vm::TypeIds::Fixed64:
+      {
+        double val;
+        map.ExpectKeyGetValue(PRIMITIVE, val);
+        variant.primitive.f64 = val;
+        break;
+      }
+      default:;
       }
     }
 
@@ -740,9 +740,7 @@ public:
       byte_array::ByteArray bytes;
       map.ExpectKeyGetValue(OBJECT, bytes);
       // TOFIX what to do with the bytes ?
-
     }
-  
   }
 };
 

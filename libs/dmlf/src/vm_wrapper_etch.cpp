@@ -25,21 +25,22 @@
 namespace fetch {
 namespace dmlf {
 
-std::vector<std::string> VmWrapperEtch::Setup(const Flags &/*flags*/)
+std::vector<std::string> VmWrapperEtch::Setup(const Flags & /*flags*/)
 {
-  module_ = VmFactory::GetModule(VmFactory::USE_SMART_CONTRACTS); // Set according to flags
+  module_ = VmFactory::GetModule(VmFactory::USE_SMART_CONTRACTS);  // Set according to flags
   status_ = VmWrapperInterface::WAITING;
   return std::vector<std::string>();
 }
 std::vector<std::string> VmWrapperEtch::Load(std::string source)
 {
   // Create executable
-  status_ = VmWrapperInterface::COMPILING;
-  command_ = source;
-  fetch::vm::SourceFiles files = {{"default.etch", source}};  
-  auto errors =  VmFactory::Compile(module_, files, *executable_);
+  status_                       = VmWrapperInterface::COMPILING;
+  command_                      = source;
+  fetch::vm::SourceFiles files  = {{"default.etch", source}};
+  auto                   errors = VmFactory::Compile(module_, files, *executable_);
 
-  if (!errors.empty()) {
+  if (!errors.empty())
+  {
     status_ = VmWrapperInterface::FAILED_COMPILATION;
     if (errorOutputHandler_ != nullptr)
     {
@@ -58,9 +59,9 @@ std::vector<std::string> VmWrapperEtch::Load(std::string source)
 void VmWrapperEtch::Execute(const std::string &entrypoint, const Params & /*params*/)
 {
   status_ = VmWrapperInterface::RUNNING;
-  std::string error;
-  fetch::vm::Variant     output;
-  outputStream_ = std::stringstream(); // Clear the output stream
+  std::string        error;
+  fetch::vm::Variant output;
+  outputStream_ = std::stringstream();  // Clear the output stream
   /*auto result = */ vm_->Execute(*executable_, entrypoint, error, output);
 
   DoOutput();
@@ -68,7 +69,7 @@ void VmWrapperEtch::Execute(const std::string &entrypoint, const Params & /*para
   {
     status_ = VmWrapperInterface::COMPLETED;
   }
-  else 
+  else
   {
     status_ = VmWrapperInterface::FAILED_RUN;
     if (errorOutputHandler_ != nullptr)
@@ -76,15 +77,16 @@ void VmWrapperEtch::Execute(const std::string &entrypoint, const Params & /*para
       errorOutputHandler_(error);
     }
   }
-
 }
 
 void VmWrapperEtch::DoOutput()
 {
-  if (outputHandler_ == nullptr) return;
+  if (outputHandler_ == nullptr)
+    return;
 
   std::string line;
-  while (std::getline(outputStream_, line)) {
+  while (std::getline(outputStream_, line))
+  {
     outputHandler_(line);
   }
 }

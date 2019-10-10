@@ -17,10 +17,10 @@
 //
 //------------------------------------------------------------------------------
 
-#include <string>
-#include <vector>
-#include <utility>
 #include <functional>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace fetch {
 namespace dmlf {
@@ -31,11 +31,11 @@ public:
   VmWrapperInterface()          = default;
   virtual ~VmWrapperInterface() = default;
 
-  using OutputHandler = std::function<void (const std::string &)>;
-  using InputHandler = std::function<std::string (void)>;
-  using Params = std::vector<std::string>;
-  using Flags = std::vector<std::string>;
-  using Status = enum {
+  using OutputHandler = std::function<void(const std::string &)>;
+  using InputHandler  = std::function<std::string(void)>;
+  using Params        = std::vector<std::string>;
+  using Flags         = std::vector<std::string>;
+  using Status        = enum {
     UNCONFIGURED,
     WAITING,
     COMPILING,

@@ -35,72 +35,73 @@ public:
   LocalExecutionEngine();
   virtual ~LocalExecutionEngine();
 
-  using Name        = ExecutionInterface::Name;
-  using SourceFiles = ExecutionInterface::SourceFiles;
-  using Target      = ExecutionInterface::Target;
-  using Variant    = ExecutionInterface::Variant;
-  using PromiseOfResult    = ExecutionInterface::PromiseOfResult;
-  using Params      = ExecutionInterface::Params;
+  using Name            = ExecutionInterface::Name;
+  using SourceFiles     = ExecutionInterface::SourceFiles;
+  using Target          = ExecutionInterface::Target;
+  using Variant         = ExecutionInterface::Variant;
+  using PromiseOfResult = ExecutionInterface::PromiseOfResult;
+  using Params          = ExecutionInterface::Params;
 
   using ErrorStage = ExecutionErrorMessage::Stage;
   using ErrorCode  = ExecutionErrorMessage::Code;
-  using Error = ExecutionResult::Error;
-  
+  using Error      = ExecutionResult::Error;
+
   // FROM LocalVmLauncher
-  using Executable = fetch::vm::Executable; // changed from using Program 
-  using VM = fetch::vm::VM;
-  using VmFactory = fetch::vm_modules::VMFactory;
-  using State = VmPersistent;
+  using Executable = fetch::vm::Executable;  // changed from using Program
+  using VM         = fetch::vm::VM;
+  using VmFactory  = fetch::vm_modules::VMFactory;
+  using State      = VmPersistent;
 
   // FROM VmLauncherInterface
   // Flags?
   using VmOutputHandler = std::ostream;
-  //using Params = std::vector<std::string>; // TOFIX
+  // using Params = std::vector<std::string>; // TOFIX
   // Program name, Error
-  using ProgramErrorHandler = std::function<void (std::string const&, std::vector<std::string>)>;
+  using ProgramErrorHandler = std::function<void(std::string const &, std::vector<std::string>)>;
   // Program name, VM name, State name, Error
-  using ExecuteErrorHandler = std::function<void (std::string const&, std::string const&, std::string const&, std::string const&)>;
-  
+  using ExecuteErrorHandler = std::function<void(std::string const &, std::string const &,
+                                                 std::string const &, std::string const &)>;
+
   virtual PromiseOfResult CreateExecutable(Target const &host, Name const &execName,
-                                    SourceFiles const &sources)                 override;
+                                           SourceFiles const &sources) override;
   virtual PromiseOfResult DeleteExecutable(Target const &host, Name const &execName) override;
 
-  virtual PromiseOfResult CreateState(Target const &host, Name const &stateName)                  override;
-  virtual PromiseOfResult CopyState(Target const &host, Name const &srcName, Name const &newName) override;
-  virtual PromiseOfResult DeleteState(Target const &host, Name const &stateName)                  override;
+  virtual PromiseOfResult CreateState(Target const &host, Name const &stateName) override;
+  virtual PromiseOfResult CopyState(Target const &host, Name const &srcName,
+                                    Name const &newName) override;
+  virtual PromiseOfResult DeleteState(Target const &host, Name const &stateName) override;
 
   virtual PromiseOfResult Run(Target const &host, Name const &execName, Name const &stateName,
-                       std::string const &entrypoint) override;
-  
+                              std::string const &entrypoint) override;
+
   // utilities
   bool CreateTarget(Target const &host);
   bool HasTarget(Target const &host);
 
   LocalExecutionEngine(LocalExecutionEngine const &other) = delete;
   LocalExecutionEngine &operator=(LocalExecutionEngine const &other)  = delete;
-  bool                operator==(LocalExecutionEngine const &other) = delete;
-  bool                operator<(LocalExecutionEngine const &other)  = delete;
+  bool                  operator==(LocalExecutionEngine const &other) = delete;
+  bool                  operator<(LocalExecutionEngine const &other)  = delete;
 
 private:
   using PromiseFulfiller = std::shared_ptr<service::details::PromiseImplementation>;
 
-  bool HasExecutable(Target const &host, Name const &execName);
-  bool HasState(Target const &host, Name const &stateName);
+  bool            HasExecutable(Target const &host, Name const &execName);
+  bool            HasState(Target const &host, Name const &stateName);
   PromiseOfResult MakeErrorResult(Error err);
   PromiseOfResult MakeErrorResult(ErrorCode err_code, std::string err_msg);
   PromiseOfResult MakeSuccessResult();
 
   PromiseFulfiller CreatePromise();
-  PromiseOfResult FulfillPromise(PromiseFulfiller promise, ExecutionResult res);
+  PromiseOfResult  FulfillPromise(PromiseFulfiller promise, ExecutionResult res);
 
   std::map<std::string, std::shared_ptr<Executable>> executables_;
-  std::map<std::string, std::shared_ptr<VM>> vms_;
-  std::map<std::string, std::shared_ptr<State>> states_;
-  ProgramErrorHandler programErrorHandler_ = nullptr;
-  ExecuteErrorHandler executeErrorhandler_ = nullptr;
-  
+  std::map<std::string, std::shared_ptr<VM>>         vms_;
+  std::map<std::string, std::shared_ptr<State>>      states_;
+  ProgramErrorHandler                                programErrorHandler_ = nullptr;
+  ExecuteErrorHandler                                executeErrorhandler_ = nullptr;
+
   std::shared_ptr<fetch::vm::Module> module_ = VmFactory::GetModule(VmFactory::USE_SMART_CONTRACTS);
-  
 };
 
 }  // namespace dmlf

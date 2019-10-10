@@ -27,9 +27,9 @@
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include <sstream>
 #include <stdexcept>
 #include <string>
-#include <sstream>
 #include <vector>
 
 namespace {
@@ -41,7 +41,7 @@ using namespace fetch::vm;
 using namespace fetch::dmlf;
 
 using Params = fetch::dmlf::LocalExecutionEngine::Params;
-//using Status = fetch::dmlf::VmWrapperInterface::Status;
+// using Status = fetch::dmlf::VmWrapperInterface::Status;
 
 auto const helloWorld = R"(
 function main()
@@ -122,14 +122,15 @@ function tock()
 endfunction
 )";
 
-auto programOut = [] (std::string name, std::vector<std::string> const& out) 
+auto programOut = [] (std::string name, std::vector<std::string> const& out)
 {
   std::cout << "Error making program " << name << '\n';
   for (auto const& l : out)
     std::cout << l << '\n';
 };
 
-auto executeOut = [] ( std::string const& program , std::string const& vm, std::string const& state, std::string const& error)
+auto executeOut = [] ( std::string const& program , std::string const& vm, std::string const& state,
+std::string const& error)
 {
   std::cout << "Error running " << program << " on " << vm << " from state " << state << '\n';
   std::cout << '\t' << error << '\n';
@@ -141,19 +142,18 @@ class LocalExecutionEngineDmlfTests : public ::testing::Test
 {
 public:
   void SetUp() override
-  {
-  }
+  {}
 };
 
 TEST_F(LocalExecutionEngineDmlfTests, local_HelloWorld)
 {
   LocalExecutionEngine local_engine;
   std::cout << helloWorld << std::endl;
-  EXPECT_EQ(1,1);
-  
+  EXPECT_EQ(1, 1);
+
   /*
-  LocalVmLauncher launcher; launcher.AttachProgramErrorHandler(programOut); launcher.AttachExecuteErrorHandler(executeOut);
-  EXPECT_FALSE(launcher.HasProgram("helloWorld"));
+  LocalVmLauncher launcher; launcher.AttachProgramErrorHandler(programOut);
+  launcher.AttachExecuteErrorHandler(executeOut); EXPECT_FALSE(launcher.HasProgram("helloWorld"));
   EXPECT_FALSE(launcher.HasVM("vm"));
   EXPECT_FALSE(launcher.HasVM("state"));
 
@@ -178,8 +178,8 @@ TEST_F(LocalExecutionEngineDmlfTests, local_HelloWorld)
 /*
 TEST(VmLauncherDmlfTests, local_DoubleHelloWorld)
 {
-  LocalVmLauncher launcher; launcher.AttachProgramErrorHandler(programOut); launcher.AttachExecuteErrorHandler(executeOut);
-  EXPECT_FALSE(launcher.HasProgram("helloWorld"));
+  LocalVmLauncher launcher; launcher.AttachProgramErrorHandler(programOut);
+launcher.AttachExecuteErrorHandler(executeOut); EXPECT_FALSE(launcher.HasProgram("helloWorld"));
   EXPECT_FALSE(launcher.HasVM("vm"));
   EXPECT_FALSE(launcher.HasVM("state"));
 
@@ -205,8 +205,8 @@ TEST(VmLauncherDmlfTests, local_DoubleHelloWorld)
 
 TEST(VmLauncherDmlfTests, repeated_HelloWorld)
 {
-  LocalVmLauncher launcher; launcher.AttachProgramErrorHandler(programOut); launcher.AttachExecuteErrorHandler(executeOut);
-  EXPECT_FALSE(launcher.HasProgram("helloWorld"));
+  LocalVmLauncher launcher; launcher.AttachProgramErrorHandler(programOut);
+launcher.AttachExecuteErrorHandler(executeOut); EXPECT_FALSE(launcher.HasProgram("helloWorld"));
   EXPECT_FALSE(launcher.HasVM("vm"));
   EXPECT_FALSE(launcher.HasVM("state"));
 
@@ -240,7 +240,8 @@ TEST(VmLauncherDmlfTests, repeated_HelloWorld)
 
 TEST(VmLauncherDmlfTests, local_Tick_VM_2States)
 {
-  LocalVmLauncher launcher; launcher.AttachProgramErrorHandler(programOut); launcher.AttachExecuteErrorHandler(executeOut);
+  LocalVmLauncher launcher; launcher.AttachProgramErrorHandler(programOut);
+launcher.AttachExecuteErrorHandler(executeOut);
 
   bool createdProgram = launcher.CreateProgram("tick", tick);
   EXPECT_TRUE(createdProgram);
@@ -276,7 +277,8 @@ TEST(VmLauncherDmlfTests, local_Tick_VM_2States)
 // Breaks VM
 //TEST(VmLauncherDmlfTests, bad_stdOut)
 //{
-//  LocalVmLauncher launcher; launcher.AttachProgramErrorHandler(programOut); launcher.AttachExecuteErrorHandler(executeOut);
+//  LocalVmLauncher launcher; launcher.AttachProgramErrorHandler(programOut);
+launcher.AttachExecuteErrorHandler(executeOut);
 //
 //  bool createdVM = launcher.CreateVM("vm");
 //  EXPECT_TRUE(createdVM);
@@ -302,7 +304,8 @@ TEST(VmLauncherDmlfTests, local_Tick_VM_2States)
 
 TEST(VmLauncherDmlfTests, bad_stdOut)
 {
-  LocalVmLauncher launcher; launcher.AttachProgramErrorHandler(programOut); launcher.AttachExecuteErrorHandler(executeOut);
+  LocalVmLauncher launcher; launcher.AttachProgramErrorHandler(programOut);
+launcher.AttachExecuteErrorHandler(executeOut);
 
   bool createdProgram = launcher.CreateProgram("helloWorld", helloWorld);
   EXPECT_TRUE(createdProgram);
@@ -330,7 +333,8 @@ TEST(VmLauncherDmlfTests, bad_stdOut)
 
 TEST(VmLauncherDmlfTests, local_Tick_Tick2_VM_State)
 {
-  LocalVmLauncher launcher; launcher.AttachProgramErrorHandler(programOut); launcher.AttachExecuteErrorHandler(executeOut);
+  LocalVmLauncher launcher; launcher.AttachProgramErrorHandler(programOut);
+launcher.AttachExecuteErrorHandler(executeOut);
 
   bool createdProgram = launcher.CreateProgram("tick", tick);
   EXPECT_TRUE(createdProgram);
@@ -376,7 +380,8 @@ TEST(VmLauncherDmlfTests, local_Tick_Tick2_VM_State)
 
 TEST(VmLauncherDmlfTests, test_Tick_Tock_VM_State)
 {
-  LocalVmLauncher launcher; launcher.AttachProgramErrorHandler(programOut); launcher.AttachExecuteErrorHandler(executeOut);
+  LocalVmLauncher launcher; launcher.AttachProgramErrorHandler(programOut);
+launcher.AttachExecuteErrorHandler(executeOut);
 
   bool createdProgram = launcher.CreateProgram("tick", tick);
   EXPECT_TRUE(createdProgram);
@@ -422,7 +427,8 @@ TEST(VmLauncherDmlfTests, test_Tick_Tock_VM_State)
 
 TEST(VmLauncherDmlfTests, test_Tick_TickTock_VM_State)
 {
-  LocalVmLauncher launcher; launcher.AttachProgramErrorHandler(programOut); launcher.AttachExecuteErrorHandler(executeOut);
+  LocalVmLauncher launcher; launcher.AttachProgramErrorHandler(programOut);
+launcher.AttachExecuteErrorHandler(executeOut);
 
   bool createdProgram = launcher.CreateProgram("tick", tick);
   EXPECT_TRUE(createdProgram);
@@ -470,7 +476,8 @@ TEST(VmLauncherDmlfTests, test_Tick_TickTock_VM_State)
 
 TEST(VmLauncherDmlfTests, test_TickState_TockState2_VM)
 {
-  LocalVmLauncher launcher; launcher.AttachProgramErrorHandler(programOut); launcher.AttachExecuteErrorHandler(executeOut);
+  LocalVmLauncher launcher; launcher.AttachProgramErrorHandler(programOut);
+launcher.AttachExecuteErrorHandler(executeOut);
 
   bool createdProgram = launcher.CreateProgram("tick", tick);
   EXPECT_TRUE(createdProgram);
@@ -519,7 +526,8 @@ TEST(VmLauncherDmlfTests, test_TickState_TockState2_VM)
 
 TEST(VmLauncherDmlfTests, test_Tick_Tock_TickTock_VM_State)
 {
-  LocalVmLauncher launcher; launcher.AttachProgramErrorHandler(programOut); launcher.AttachExecuteErrorHandler(executeOut);
+  LocalVmLauncher launcher; launcher.AttachProgramErrorHandler(programOut);
+launcher.AttachExecuteErrorHandler(executeOut);
 
   bool createdProgram = launcher.CreateProgram("tick", tick);
   EXPECT_TRUE(createdProgram);
@@ -568,7 +576,8 @@ TEST(VmLauncherDmlfTests, test_Tick_Tock_TickTock_VM_State)
 
 TEST(VmLauncherDmlfTests, test_HelloWorld_2VM)
 {
-  LocalVmLauncher launcher; launcher.AttachProgramErrorHandler(programOut); launcher.AttachExecuteErrorHandler(executeOut);
+  LocalVmLauncher launcher; launcher.AttachProgramErrorHandler(programOut);
+launcher.AttachExecuteErrorHandler(executeOut);
 
   bool createdProgram = launcher.CreateProgram("helloWorld", helloWorld);
   EXPECT_TRUE(createdProgram);
@@ -594,7 +603,8 @@ TEST(VmLauncherDmlfTests, test_HelloWorld_2VM)
 
 TEST(VmLauncherDmlfTests, test_Tick_2VM_State)
 {
-  LocalVmLauncher launcher; launcher.AttachProgramErrorHandler(programOut); launcher.AttachExecuteErrorHandler(executeOut);
+  LocalVmLauncher launcher; launcher.AttachProgramErrorHandler(programOut);
+launcher.AttachExecuteErrorHandler(executeOut);
 
   bool createdProgram = launcher.CreateProgram("tick", tick);
   EXPECT_TRUE(createdProgram);
@@ -625,7 +635,8 @@ TEST(VmLauncherDmlfTests, test_Tick_2VM_State)
 
 TEST(VmLauncherDmlfTests, test_Tick_Tock_2VM_State)
 {
-  LocalVmLauncher launcher; launcher.AttachProgramErrorHandler(programOut); launcher.AttachExecuteErrorHandler(executeOut);
+  LocalVmLauncher launcher; launcher.AttachProgramErrorHandler(programOut);
+launcher.AttachExecuteErrorHandler(executeOut);
 
   bool createdProgram = launcher.CreateProgram("tick", tick);
   EXPECT_TRUE(createdProgram);
@@ -659,7 +670,8 @@ TEST(VmLauncherDmlfTests, test_Tick_Tock_2VM_State)
 
 TEST(VmLauncherDmlfTests, local_Tick_Tick_VM_State)
 {
-  LocalVmLauncher launcher; launcher.AttachProgramErrorHandler(programOut); launcher.AttachExecuteErrorHandler(executeOut);
+  LocalVmLauncher launcher; launcher.AttachProgramErrorHandler(programOut);
+launcher.AttachExecuteErrorHandler(executeOut);
 
   bool createdProgram = launcher.CreateProgram("tick", tick);
   EXPECT_TRUE(createdProgram);
@@ -719,7 +731,8 @@ TEST(VmLauncherDmlfTests, local_Tick_Tick_VM_State)
 
 TEST(VmLauncherDmlfTests, local_Tick_Tick_VM_CopyState)
 {
-  LocalVmLauncher launcher; launcher.AttachProgramErrorHandler(programOut); launcher.AttachExecuteErrorHandler(executeOut);
+  LocalVmLauncher launcher; launcher.AttachProgramErrorHandler(programOut);
+launcher.AttachExecuteErrorHandler(executeOut);
 
   bool createdProgram = launcher.CreateProgram("tick", tick);
   EXPECT_TRUE(createdProgram);

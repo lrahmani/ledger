@@ -36,23 +36,24 @@ public:
   ExecutionInterface()          = default;
   virtual ~ExecutionInterface() = default;
 
-  using Name        = std::string;
-  using SourceFiles = fetch::vm::SourceFiles;
-  using Target      = std::string;
-  using Variant    = fetch::vm::Variant;
-  using PromiseOfResult    = fetch::network::PromiseOf<ExecutionResult>;
-  using Params      = std::vector<Variant>;
+  using Name            = std::string;
+  using SourceFiles     = fetch::vm::SourceFiles;
+  using Target          = std::string;
+  using Variant         = fetch::vm::Variant;
+  using PromiseOfResult = fetch::network::PromiseOf<ExecutionResult>;
+  using Params          = std::vector<Variant>;
 
   virtual PromiseOfResult CreateExecutable(Target const &host, Name const &execName,
-                                    SourceFiles const &sources)                 = 0;
+                                           SourceFiles const &sources)               = 0;
   virtual PromiseOfResult DeleteExecutable(Target const &host, Name const &execName) = 0;
 
-  virtual PromiseOfResult CreateState(Target const &host, Name const &stateName)                  = 0;
-  virtual PromiseOfResult CopyState(Target const &host, Name const &srcName, Name const &newName) = 0;
-  virtual PromiseOfResult DeleteState(Target const &host, Name const &stateName)                  = 0;
+  virtual PromiseOfResult CreateState(Target const &host, Name const &stateName) = 0;
+  virtual PromiseOfResult CopyState(Target const &host, Name const &srcName,
+                                    Name const &newName)                         = 0;
+  virtual PromiseOfResult DeleteState(Target const &host, Name const &stateName) = 0;
 
   virtual PromiseOfResult Run(Target const &host, Name const &execName, Name const &stateName,
-                       std::string const &entrypoint) = 0;
+                              std::string const &entrypoint) = 0;
 
   ExecutionInterface(ExecutionInterface const &other) = delete;
   ExecutionInterface &operator=(ExecutionInterface const &other)  = delete;

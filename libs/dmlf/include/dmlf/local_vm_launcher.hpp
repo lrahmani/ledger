@@ -30,56 +30,52 @@
 namespace fetch {
 namespace dmlf {
 
-class LocalVmLauncher : public VmLauncherInterface 
+class LocalVmLauncher : public VmLauncherInterface
 {
 public:
   LocalVmLauncher()
-  {
-  }
+  {}
   virtual ~LocalVmLauncher()
-  {
-  }
-  using Program = fetch::vm::Executable;
-  using VM = fetch::vm::VM;
+  {}
+  using Program   = fetch::vm::Executable;
+  using VM        = fetch::vm::VM;
   using VmFactory = fetch::vm_modules::VMFactory;
-  using State = VmPersistent;
+  using State     = VmPersistent;
 
-  bool CreateProgram(std::string const& name, std::string const& source) override;
-  bool HasProgram(std::string const& name) const override;
+  bool CreateProgram(std::string const &name, std::string const &source) override;
+  bool HasProgram(std::string const &name) const override;
   void AttachProgramErrorHandler(ProgramErrorHandler) override;
 
-  bool CreateVM(std::string const& name) override;
-  bool HasVM(std::string const& name) const override;
-  bool SetVmStdout(std::string const& vmName, VmOutputHandler&) override;
-  //bool SetVmStderr(std::string const& vmName, VmOutputHandler) override;
+  bool CreateVM(std::string const &name) override;
+  bool HasVM(std::string const &name) const override;
+  bool SetVmStdout(std::string const &vmName, VmOutputHandler &) override;
+  // bool SetVmStderr(std::string const& vmName, VmOutputHandler) override;
 
-  bool CreateState(std::string const& name) override;
-  bool HasState(std::string const& name) const override;
-  bool CopyState(std::string const& srcName, std::string const& newName) override;
+  bool CreateState(std::string const &name) override;
+  bool HasState(std::string const &name) const override;
+  bool CopyState(std::string const &srcName, std::string const &newName) override;
 
-  bool Execute(std::string const& program, std::string const& vm, std::string const& state,
-      std::string const& entrypoint, const Params /*params*/) override;
+  bool Execute(std::string const &program, std::string const &vm, std::string const &state,
+               std::string const &entrypoint, const Params /*params*/) override;
   void AttachExecuteErrorHandler(ExecuteErrorHandler) override;
 
 private:
-
   std::map<std::string, std::shared_ptr<Program>> programs_;
-  std::map<std::string, std::shared_ptr<VM>> vms_;
-  std::map<std::string, std::shared_ptr<State>> states_;
-  //auto sinkProgramErrorHandler = [] (std::string const&, std::vector<std::string>) {};
-  //auto sinkExecuteErrorHandler = [] (std::string const&, std::string const&, std::String const&, std::string) {};
+  std::map<std::string, std::shared_ptr<VM>>      vms_;
+  std::map<std::string, std::shared_ptr<State>>   states_;
+  // auto sinkProgramErrorHandler = [] (std::string const&, std::vector<std::string>) {};
+  // auto sinkExecuteErrorHandler = [] (std::string const&, std::string const&, std::String const&,
+  // std::string) {};
   ProgramErrorHandler programErrorHandler_ = nullptr;
   ExecuteErrorHandler executeErrorhandler_ = nullptr;
 
   std::shared_ptr<fetch::vm::Module> module_ = VmFactory::GetModule(VmFactory::USE_SMART_CONTRACTS);
 
   LocalVmLauncher(const LocalVmLauncher &other) = delete;
-  LocalVmLauncher &operator=(const LocalVmLauncher &other) = delete;
-  bool operator==(const LocalVmLauncher &other) = delete;
-  bool operator<(const LocalVmLauncher &other) = delete;
-
-
+  LocalVmLauncher &operator=(const LocalVmLauncher &other)  = delete;
+  bool             operator==(const LocalVmLauncher &other) = delete;
+  bool             operator<(const LocalVmLauncher &other)  = delete;
 };
 
-} // namespace dmlf
-} // namespace fetch
+}  // namespace dmlf
+}  // namespace fetch

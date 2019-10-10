@@ -53,7 +53,7 @@ public:
   };
 
   ExecutionErrorMessage() = default;
-  
+
   explicit ExecutionErrorMessage(Stage stage, Code code, std::string message)
     : stage_(stage)
     , code_(code)
@@ -99,11 +99,11 @@ public:
   {
     uint32_t stage, code;
     stage = static_cast<uint32_t>(exec_err_msg.stage_);
-    code = static_cast<uint32_t>(exec_err_msg.code_);
-    
+    code  = static_cast<uint32_t>(exec_err_msg.code_);
+
     auto map = map_constructor(3);
     map.Append(STAGE, stage);
-    map.Append(CODE,  code);
+    map.Append(CODE, code);
     map.Append(MESSAGE, exec_err_msg.message_);
   }
 
@@ -111,7 +111,7 @@ public:
   static void Deserialize(MapDeserializer &map, Type &exec_err_msg)
   {
     uint32_t stage, code;
-    
+
     map.ExpectKeyGetValue(STAGE, stage);
     map.ExpectKeyGetValue(CODE, code);
     map.ExpectKeyGetValue(MESSAGE, exec_err_msg.message_);
