@@ -40,22 +40,21 @@ public:
   ExecutionEngineSingleThreaded &operator=(ExecutionEngineSingleThreaded const &other) = delete;
   ExecutionEngineSingleThreaded &operator=(ExecutionEngineSingleThreaded &&other) = delete;
 
-  using Name            = ExecutionEngineInterface::Name;
-  using SourceFiles     = ExecutionEngineInterface::SourceFiles;
-  using Target          = ExecutionEngineInterface::Target;
-  using Variant         = ExecutionEngineInterface::Variant;
-  using PromiseOfResult = ExecutionEngineInterface::PromiseOfResult;
-  using Params          = ExecutionEngineInterface::Params;
+  using Name        = ExecutionEngineInterface::Name;
+  using SourceFiles = ExecutionEngineInterface::SourceFiles;
+  using Target      = ExecutionEngineInterface::Target;
+  using Variant     = ExecutionEngineInterface::Variant;
+  using Params      = ExecutionEngineInterface::Params;
 
-  virtual PromiseOfResult CreateExecutable(Name const &       execName,
+  virtual ExecutionResult CreateExecutable(Name const &       execName,
                                            SourceFiles const &sources) override;
-  virtual PromiseOfResult DeleteExecutable(Target const &host, Name const &execName) override;
+  virtual ExecutionResult DeleteExecutable(Target const &host, Name const &execName) override;
 
-  virtual PromiseOfResult CreateState(Name const &stateName) override;
-  virtual PromiseOfResult CopyState(Name const &srcName, Name const &newName) override;
-  virtual PromiseOfResult DeleteState(Name const &stateName) override;
+  virtual ExecutionResult CreateState(Name const &stateName) override;
+  virtual ExecutionResult CopyState(Name const &srcName, Name const &newName) override;
+  virtual ExecutionResult DeleteState(Name const &stateName) override;
 
-  virtual PromiseOfResult Run(Name const &execName, Name const &stateName,
+  virtual ExecutionResult Run(Name const &execName, Name const &stateName,
                               std::string const &entrypoint) override;
 
 private:
