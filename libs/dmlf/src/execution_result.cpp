@@ -39,6 +39,18 @@ ExecutionResult ExecutionResult::MakeErroneousResult(ErrorCode err_code, std::st
   return MakeResultFromStatus(err);
 }
 
+ExecutionResult ExecutionResult::MakeSuccess()
+{
+  return ExecutionResult{Variant{}, Error{ErrorStage::ENGINE, ErrorCode::SUCCESS, std::string{}},
+                         std::string{}};
+}
+
+ExecutionResult ExecutionResult::MakeIntegerResult(int r)
+{
+  return ExecutionResult{Variant{r}, Error{ErrorStage::ENGINE, ErrorCode::SUCCESS, std::string{}},
+                         std::string{}};
+}
+
 ExecutionResult::PromiseOfResult ExecutionResult::MakePromise()
 {
   fetch::network::PromiseOf<ExecutionResult> promise{service::MakePromise()};
