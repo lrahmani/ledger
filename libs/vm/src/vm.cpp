@@ -183,6 +183,13 @@ VM::VM(Module *module)
     AddOpcodeInfo(opcode, info.unique_name, info.handler, info.static_charge);
     opcode_map_[info.unique_name] = opcode;
   }
+  
+  size_t i = 0;
+  for(auto& opcode : opcode_info_array_)
+  {
+    std::cout << i << '\t' << opcode.unique_name << '\t' << opcode.static_charge << std::endl;
+    ++i;
+  }
 
   generator_.Initialise(this, num_types);
 }
