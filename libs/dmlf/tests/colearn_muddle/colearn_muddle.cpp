@@ -87,8 +87,8 @@ public:
 
     actual    = std::make_shared<LN>(priv, port, r);
     interface = actual;
-    interface->RegisterUpdateType<UpdateTypeForTesting>("update");
-    interface->RegisterUpdateType<fetch::dmlf::Update<std::string>>("vocab");
+    //interface->RegisterUpdateType<UpdateTypeForTesting>("update");
+    //interface->RegisterUpdateType<fetch::dmlf::Update<std::string>>("vocab");
   }
 
   void PretendToLearn()

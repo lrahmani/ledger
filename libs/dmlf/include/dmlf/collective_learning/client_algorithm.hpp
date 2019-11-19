@@ -173,7 +173,7 @@ void ClientAlgorithm<TensorType>::SetModel(ModelPtrType model_ptr)
 template <class TensorType>
 void ClientAlgorithm<TensorType>::ClearLossFile()
 {
-  std::ofstream lossfile("losses_" + id_ + ".csv", std::ofstream::out | std::ofstream::trunc);
+  std::ofstream lossfile(params_.results_dir + "losses_" + id_ + ".csv", std::ofstream::out | std::ofstream::trunc);
   lossfile.close();
 }
 

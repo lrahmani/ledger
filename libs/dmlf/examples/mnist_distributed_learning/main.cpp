@@ -21,6 +21,8 @@
 #include "dmlf/collective_learning/utilities/utilities.hpp"
 #include "dmlf/networkers/local_learner_networker.hpp"
 #include "dmlf/simple_cycling_algorithm.hpp"
+#include "dmlf/colearn/muddle_learner_networker_impl.hpp"
+#include "dmlf/colearn/utils.hpp"
 #include "json/document.hpp"
 #include "math/tensor.hpp"
 
@@ -37,6 +39,7 @@ using DataType         = fetch::fixed_point::FixedPoint<32, 32>;
 using TensorType       = fetch::math::Tensor<DataType>;
 using VectorTensorType = std::vector<TensorType>;
 using SizeType         = fetch::math::SizeType;
+using LearnerNetworkerImpl = fetch::dmlf::colearn::MuddleLearnerNetworkerImpl;
 
 int main(int argc, char **argv)
 {
@@ -63,21 +66,41 @@ int main(int argc, char **argv)
   auto n_rounds       = doc["n_rounds"].As<SizeType>();
   auto synchronise    = doc["synchronise"].As<bool>();
   auto test_set_ratio = doc["test_set_ratio"].As<float>();
+  
+  FETCH_UNUSED(n_peers);
 
   std::shared_ptr<std::mutex> console_mutex_ptr = std::make_shared<std::mutex>();
 
   // Set up networkers
-  std::vector<std::shared_ptr<fetch::dmlf::LocalLearnerNetworker>> networkers(n_clients);
-  for (SizeType i(0); i < n_clients; ++i)
+  fetch::SetGlobalLogLevel(fetch::LogLevel::ERROR);
+  std::vector<std::shared_ptr<LearnerNetworkerImpl>> networkers(n_clients);
+  std::vector<std::string> private_keys = fetch::dmlf::colearn::utils::GenerateKeys(n_clients);
+  std::vector<std::string> public_keys = fetch::dmlf::colearn::utils::ComputePublicKeys(private_keys);
+  const double BROADCAST_PROPORTION{1.0};
+
+  // set up the first networker as a RDV point
+  const uint16_t RDV_PORT{15005};
+  const std::string RDV_URI = "tcp://127.0.0.1:" + std::to_string(RDV_PORT);
+  networkers.at(0) = std::make_shared<LearnerNetworkerImpl>(private_keys[0], RDV_PORT, std::string{});
+  networkers.at(0)->ColearnRegisterUpdateType<fetch::dmlf::Update<TensorType>>("gradients");
+
+  // set up the rest of the networkers
+  for (SizeType i(1); i < n_clients; ++i)
   {
-    networkers.at(i) = std::make_shared<fetch::dmlf::LocalLearnerNetworker>();
-    networkers.at(i)->Initialize<fetch::dmlf::Update<TensorType>>();
+    networkers.at(i) = std::make_shared<LearnerNetworkerImpl>(private_keys[i], 0, RDV_URI);
+    //networkers.at(i)->Initialize<fetch::dmlf::Update<TensorType>>();
+    networkers.at(i)->ColearnRegisterUpdateType<fetch::dmlf::Update<TensorType>>("gradients");
   }
   for (SizeType i(0); i < n_clients; ++i)
   {
-    networkers.at(i)->AddPeers(networkers);
-    networkers.at(i)->SetShuffleAlgorithm(std::make_shared<fetch::dmlf::SimpleCyclingAlgorithm>(
-        networkers.at(i)->GetPeerCount(), n_peers));
+    for(SizeType j(0); j < n_clients; ++j)
+    {
+      if(j!=i)
+      {
+        networkers.at(i)->addTarget(public_keys[j]);
+      }
+    }
+    networkers.at(i)->set_broadcast_proportion(BROADCAST_PROPORTION);
   }
 
   // Create training clients

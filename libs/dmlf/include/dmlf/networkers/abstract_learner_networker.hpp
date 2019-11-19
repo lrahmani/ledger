@@ -22,6 +22,7 @@
 #include "core/mutex.hpp"
 
 #include "core/byte_array/byte_array.hpp"
+#include "core/byte_array/const_byte_array.hpp"
 #include "dmlf/colearn/update_store_interface.hpp"
 #include "dmlf/queue.hpp"
 #include "dmlf/queue_interface.hpp"
@@ -34,7 +35,8 @@ namespace dmlf {
 class AbstractLearnerNetworker
 {
 public:
-  using Bytes = byte_array::ByteArray;
+  using Bytes = byte_array::ByteArray;  
+  using BytesConst = byte_array::ConstByteArray;
 
   AbstractLearnerNetworker()                                      = default;
   virtual ~AbstractLearnerNetworker()                             = default;
@@ -112,6 +114,52 @@ public:
     auto que  = std::dynamic_pointer_cast<Queue<T>>(iter->second);
     return que->GetUpdate();
   }
+  
+  template <typename T>
+  void ColearnPushUpdate(std::shared_ptr<T> const &update)
+  {
+    std::string upd_type{};
+    {
+      FETCH_LOCK(queue_map_m_);
+      upd_type  = update_types_.template find<T>();
+    }
+
+    auto data = Serialize(update);
+
+    ColearnPushUpdateImplem(upd_type, data); 
+  }
+
+  template <typename T>
+  void ColearnRegisterUpdateType(std::string const& update_type)
+  {
+    FETCH_LOCK(queue_map_m_);
+    update_types_.template put<T>(update_type);
+  }
+  
+  template <typename T>
+  std::size_t ColearnGetUpdateCount() const
+  {
+    std::string upd_type{};
+    {
+      FETCH_LOCK(queue_map_m_);
+      upd_type  = update_types_.template find<T>();
+    }
+
+    return ColearnGetUpdateCountImplem(upd_type);
+  }
+
+  template <typename T>
+  std::shared_ptr<T> ColearnGetUpdate()
+  {
+    std::string upd_type{};
+    {
+      FETCH_LOCK(queue_map_m_);
+      upd_type = update_types_.template find<T>();
+    }
+
+    BytesConst bytes = ColearnGetUpdateImplem(upd_type);
+    return Deserialize<T>(bytes);    
+  }
 
 protected:
   std::shared_ptr<ShuffleAlgorithmInterface> alg_;  // used by descendents
@@ -119,6 +167,38 @@ protected:
   virtual void NewMessage(Bytes const &msg);                             // called by descendents
   virtual void NewDmlfMessage(Bytes const &msg);                         // called by descendents
   virtual void NewMessage(const std::string &key, Bytes const &update);  // called by descendents
+  
+  virtual std::size_t ColearnGetUpdateCountImplem(std::string const &/*update_type*/) const
+  {
+    throw std::runtime_error("ColearnGetUpdateCountImplem must be implemented by descendents");
+  }
+
+  virtual BytesConst  ColearnGetUpdateImplem(std::string const &/*update_type*/)
+  {
+    throw std::runtime_error("ColearnGetUpdateImplem must be implemented by descendents");
+  }
+
+  virtual void        ColearnPushUpdateImplem(std::string const &/*update_type*/, BytesConst const &/*data*/)
+  {
+    throw std::runtime_error("ColearnPushUpdateImplem must be implemented by descendents");
+  }
+
+  template <typename T>
+  Bytes Serialize(std::shared_ptr<T> const &update)
+  {
+    fetch::serializers::MsgPackSerializer serializer;
+    serializer << *update;
+    return serializer.data();
+  }
+
+  template <typename T>
+  std::shared_ptr<T> Deserialize(BytesConst const &bytes)
+  {
+    auto update = std::make_shared<T>();
+    fetch::serializers::MsgPackSerializer deserializer{bytes};
+    deserializer >> *update;
+    return update;
+  }
 
 private:
   using Mutex             = fetch::Mutex;

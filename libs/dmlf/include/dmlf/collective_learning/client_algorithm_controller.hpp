@@ -65,7 +65,7 @@ void ClientAlgorithmController<TensorType>::PushUpdate(
     std::shared_ptr<ClientAlgorithmController::UpdateType> update)
 {
   FETCH_LOCK(algorithm_controller_mutex);
-  mci_ptr_->PushUpdate(update);
+  mci_ptr_->ColearnPushUpdate(update);
 }
 
 /**
@@ -76,7 +76,7 @@ template <typename TensorType>
 std::size_t ClientAlgorithmController<TensorType>::UpdateCount()
 {
   FETCH_LOCK(algorithm_controller_mutex);
-  return mci_ptr_->GetUpdateCount();
+  return mci_ptr_->ColearnGetUpdateCount<ClientAlgorithmController::UpdateType>();
 }
 
 /**
@@ -87,7 +87,7 @@ template <typename UpdateType>
 std::shared_ptr<UpdateType> ClientAlgorithmController<TensorType>::GetUpdate()
 {
   FETCH_LOCK(algorithm_controller_mutex);
-  return mci_ptr_->GetUpdate<UpdateType>();
+  return mci_ptr_->ColearnGetUpdate<UpdateType>();
 }
 
 }  // namespace collective_learning

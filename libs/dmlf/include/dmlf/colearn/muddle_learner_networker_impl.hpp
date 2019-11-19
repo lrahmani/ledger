@@ -73,6 +73,7 @@ public:
   bool                        operator<(MuddleLearnerNetworkerImpl const &other)  = delete;
 
   void addTarget(const std::string &peer);
+  void addTargets(const std::vector<std::string> &peers);
 
   void PushUpdate(UpdateInterfacePtr const &update) override;
   void PushUpdateType(const std::string &type_name, UpdateInterfacePtr const &update) override;
@@ -90,6 +91,11 @@ public:
   std::size_t GetUpdateCount() const override
   {
     return update_store_->GetUpdateCount();
+  }
+
+  std::size_t GetUpdateCount(std::string update_type) const
+  {
+    return update_store_->GetUpdateCount("algo1", update_type);
   }
 
   std::size_t GetPeerCount() const override
@@ -117,6 +123,10 @@ public:
 
 protected:
   void setup(MuddlePtr mud, StorePtr update_store);
+  
+  std::size_t ColearnGetUpdateCountImplem(std::string const &/*update_type*/) const override;
+  byte_array::ConstByteArray  ColearnGetUpdateImplem(std::string const &/*update_type*/) override;
+  void        ColearnPushUpdateImplem(std::string const &/*update_type*/, byte_array::ConstByteArray const &/*data*/) override;
 
 private:
   std::shared_ptr<Taskpool>   taskpool_;

@@ -1,0 +1,18 @@
+{
+	"data": "/data/t10k-images-idx3-ubyte",
+	"labels": "/data/t10k-labels-idx1-ubyte",
+	"n_clients": 5,
+	"n_peers": 4,
+	"n_rounds": 3,
+	"synchronise": false,
+	"test_set_ratio": 0.1,
+	"results": "/build/build/",
+	"batch_size": 32,
+	"max_updates": 300,
+	"max_epochs": 20,
+	"learning_rate": 0.02,
+	"print_loss": false,
+	"input_names": ["Input"],
+	"label_name": "Label",
+	"error_name": "Error"
+}

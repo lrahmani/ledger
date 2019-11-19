@@ -32,6 +32,14 @@ void MuddleLearnerNetworkerImpl::addTarget(const std::string &peer)
   peers_.insert(peer);
 }
 
+void MuddleLearnerNetworkerImpl::addTargets(const std::vector<std::string> &peers)
+{
+  for(const auto& peer : peers)
+  {
+    addTarget(peer);
+  }
+}
+
 MuddleLearnerNetworkerImpl::MuddleLearnerNetworkerImpl(MuddlePtr mud, StorePtr update_store)
 {
   setup(std::move(mud), std::move(update_store));
@@ -146,6 +154,23 @@ uint64_t MuddleLearnerNetworkerImpl::NetworkColearnUpdate(service::CallContext c
   update_store_->PushUpdate("algo1", type_name, std::move(bytes), source, std::move(metadata));
   return 1;
 }
+
+std::size_t MuddleLearnerNetworkerImpl::ColearnGetUpdateCountImplem(std::string const &type) const
+{
+  return this->GetUpdateCount(type);
+}
+
+byte_array::ConstByteArray  MuddleLearnerNetworkerImpl::ColearnGetUpdateImplem(std::string const &type)
+{
+  return this->GetUpdate("algo1", type)->data();
+}
+
+void MuddleLearnerNetworkerImpl::ColearnPushUpdateImplem(std::string const &type, byte_array::ConstByteArray const &data)
+{
+  this->PushUpdateBytes(type, data);
+}
+
+
 }  // namespace colearn
 }  // namespace dmlf
 }  // namespace fetch

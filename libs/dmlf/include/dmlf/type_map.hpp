@@ -57,6 +57,11 @@ public:
     map_[tid] = value;
   }
 
+  std::size_t size() const
+  {
+    return map_.size();
+  }
+
 private:
   IntToValueMap map_;
 };
