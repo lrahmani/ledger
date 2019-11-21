@@ -64,7 +64,7 @@ int main(int argc, char **argv)
   auto word2vec_client_params = std::make_shared<Word2VecTrainingParams<DataType>>(client_params);
 
   auto networker_config = fetch::json::JSONDocument(std::string(argv[2]));
-  int  instance_number  = std::atoi(argv[3]);
+  auto instance_number  = static_cast<std::size_t>(std::atoi(argv[3]));
 
   auto data_file                              = doc["data"].As<std::string>();
   word2vec_client_params->analogies_test_file = doc["analogies_test_file"].As<std::string>();
@@ -90,7 +90,7 @@ int main(int argc, char **argv)
   // Create networker
   MessageControllerPtr networker =
       fetch::dmlf::collective_learning::utilities::MakeMuddleMessageControllerFromJson(
-          networker_config);
+          networker_config, instance_number);
 
   // Create learning client
   Word2VecTrainingParams<DataType> cp(*word2vec_client_params);

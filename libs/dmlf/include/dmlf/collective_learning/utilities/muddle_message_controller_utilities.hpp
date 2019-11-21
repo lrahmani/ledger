@@ -27,6 +27,7 @@
 #include "dmlf/collective_learning/utilities/typed_msg_controller_wrapper.hpp"
 
 #include "json/document.hpp"
+#include "network/uri.hpp"
 
 namespace fetch {
 namespace dmlf {
@@ -49,19 +50,56 @@ inline uint16_t random_port()
   return distr(eng);
 }
 
-MessageControllerPtr MakeMuddleMessageControllerFromJson(fetch::json::JSONDocument const &config)
+inline void suppress_muddle_message_controller_logs()
 {
+  fetch::SetLogLevel("TCPServer", fetch::LogLevel::ERROR);
+  fetch::SetLogLevel("TCPClientImpl", fetch::LogLevel::ERROR);
+  fetch::SetLogLevel("Muddle:Test", fetch::LogLevel::ERROR);
+  fetch::SetLogLevel("MuddlePeers:Test", fetch::LogLevel::ERROR);
+  fetch::SetLogLevel("MuddlePeers:Test", fetch::LogLevel::ERROR);
+  fetch::SetLogLevel("Router:Test", fetch::LogLevel::ERROR);
+  fetch::SetLogLevel("DirectHandler:Test", fetch::LogLevel::ERROR);
+  fetch::SetLogLevel("NetworkManager", fetch::LogLevel::ERROR);
+  fetch::SetLogLevel("MuddleLearnerNetworkerImpl", fetch::LogLevel::ERROR);
+  fetch::SetLogLevel("MuddleOutboundUpdateTask", fetch::LogLevel::ERROR);
+}
+
+MessageControllerPtr MakeMuddleMessageControllerFromJson(fetch::json::JSONDocument const &config,
+                                                         std::size_t  instance_number,
+                                                         const double broadcast_proportion = 1.0,
+                                                         bool         suppress_log         = true)
+{
+  // logging setup
+  if (suppress_log)
+  {
+    suppress_muddle_message_controller_logs();
+  }
+
   // get config from json
-  auto instance             = config.root()["instance"];
-  auto private_key          = instance["key"].As<std::string>();
-  auto port                 = instance["port"].As<uint16_t>();
-  auto broadcast_proportion = instance["broadcast_proportion"].As<double>();
-  auto rdv_peer             = config.root()["peers"][0];
-  auto rdv_uri              = rdv_peer["uri"].As<std::string>();
+  auto peers = config.root()["peers"];
+  // rdv peer config
+  auto rdv_peer = peers[0];
+  auto rdv_uri  = rdv_peer["uri"].As<std::string>();
+  // current peer config
+  auto my_config   = peers[instance_number];
+  auto self_uri    = fetch::network::Uri(my_config["uri"].As<std::string>());
+  auto port        = self_uri.GetTcpPeer().port();
+  auto private_key = my_config["key"].As<std::string>();
 
   // setup muddle
   auto muddle = std::make_shared<MuddleMessageController>(private_key, port, rdv_uri);
   muddle->set_broadcast_proportion(broadcast_proportion);
+
+  // add all peers
+  std::size_t count = peers.size();
+  for (std::size_t i{0}; i < count; ++i)
+  {
+    if (i != instance_number)
+    {
+      muddle->addTarget(peers[i]["pub"].As<std::string>());
+    }
+  }
+
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
   return std::make_shared<TypedMsgControllerlWrapper>(muddle);
@@ -73,16 +111,7 @@ std::vector<MessageControllerPtr> MakeLocalMuddleMessageControllersSwarm(
   // logging setup
   if (suppress_log)
   {
-    fetch::SetLogLevel("TCPServer", fetch::LogLevel::ERROR);
-    fetch::SetLogLevel("TCPClientImpl", fetch::LogLevel::ERROR);
-    fetch::SetLogLevel("Muddle:Test", fetch::LogLevel::ERROR);
-    fetch::SetLogLevel("MuddlePeers:Test", fetch::LogLevel::ERROR);
-    fetch::SetLogLevel("MuddlePeers:Test", fetch::LogLevel::ERROR);
-    fetch::SetLogLevel("Router:Test", fetch::LogLevel::ERROR);
-    fetch::SetLogLevel("DirectHandler:Test", fetch::LogLevel::ERROR);
-    fetch::SetLogLevel("NetworkManager", fetch::LogLevel::ERROR);
-    fetch::SetLogLevel("MuddleLearnerNetworkerImpl", fetch::LogLevel::ERROR);
-    fetch::SetLogLevel("MuddleOutboundUpdateTask", fetch::LogLevel::ERROR);
+    suppress_muddle_message_controller_logs();
   }
 
   // result

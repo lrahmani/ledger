@@ -56,7 +56,7 @@ int main(int argc, char **argv)
   }
 
   auto networker_config = fetch::json::JSONDocument(std::string(argv[2]));
-  int  instance_number  = std::atoi(argv[3]);
+  auto instance_number  = static_cast<std::size_t>(std::atoi(argv[3]));
 
   fetch::json::JSONDocument                                doc;
   fetch::dmlf::collective_learning::ClientParams<DataType> client_params =
@@ -90,7 +90,7 @@ int main(int argc, char **argv)
   // Create networker
   MessageControllerPtr networker =
       fetch::dmlf::collective_learning::utilities::MakeMuddleMessageControllerFromJson(
-          networker_config);
+          networker_config, instance_number);
 
   // Create learning client
   auto client = fetch::dmlf::collective_learning::utilities::MakeBostonClient<TensorType>(
