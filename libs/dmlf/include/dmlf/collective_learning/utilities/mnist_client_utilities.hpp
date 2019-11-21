@@ -98,7 +98,8 @@ MakeMNISTClient(
     std::shared_ptr<std::mutex>                                         console_mutex_ptr)
 {
   // set up the client first
-  // set up updates types to be exchanged in the collaborative learning
+  message_controller->template RegisterUpdateType<fetch::dmlf::deprecated_Update<TensorType>>(
+      "gradients");
   auto client = std::make_shared<CollectiveLearningClient<TensorType>>(
       id, client_params, message_controller, console_mutex_ptr);
 

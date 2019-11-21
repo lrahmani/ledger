@@ -74,7 +74,15 @@ std::vector<MessageControllerPtr> MakeLocalMuddleMessageControllersSwarm(
   if (suppress_log)
   {
     fetch::SetLogLevel("TCPServer", fetch::LogLevel::ERROR);
+    fetch::SetLogLevel("TCPClientImpl", fetch::LogLevel::ERROR);
     fetch::SetLogLevel("Muddle:Test", fetch::LogLevel::ERROR);
+    fetch::SetLogLevel("MuddlePeers:Test", fetch::LogLevel::ERROR);
+    fetch::SetLogLevel("MuddlePeers:Test", fetch::LogLevel::ERROR);
+    fetch::SetLogLevel("Router:Test", fetch::LogLevel::ERROR);
+    fetch::SetLogLevel("DirectHandler:Test", fetch::LogLevel::ERROR);
+    fetch::SetLogLevel("NetworkManager", fetch::LogLevel::ERROR);
+    fetch::SetLogLevel("MuddleLearnerNetworkerImpl", fetch::LogLevel::ERROR);
+    fetch::SetLogLevel("MuddleOutboundUpdateTask", fetch::LogLevel::ERROR);
   }
 
   // result
@@ -101,6 +109,13 @@ std::vector<MessageControllerPtr> MakeLocalMuddleMessageControllersSwarm(
     auto muddle =
         std::make_shared<dmlf::colearn::MuddleMessageController>(private_keys[i], 0, RDV_URI);
     muddle->set_broadcast_proportion(broadcast_proportion);
+    for (std::size_t j{0}; j < count; ++j)
+    {
+      if (j != i)
+      {
+        muddle->addTarget(public_keys[j]);
+      }
+    }
     msg_ctrls.emplace_back(std::make_shared<TypedMsgControllerlWrapper>(muddle));
   }
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
