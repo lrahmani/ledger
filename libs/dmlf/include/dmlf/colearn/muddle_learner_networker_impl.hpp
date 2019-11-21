@@ -37,6 +37,9 @@ namespace fetch {
 namespace dmlf {
 namespace colearn {
 
+class MuddleLearnerNetworkerImpl;
+using MuddleMessageController = MuddleLearnerNetworkerImpl;
+
 class MuddleLearnerNetworkerImpl : public AbstractMessageController
 {
 public:

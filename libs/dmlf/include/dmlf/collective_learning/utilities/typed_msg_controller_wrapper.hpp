@@ -20,6 +20,8 @@
 #include <memory>
 
 #include "core/mutex.hpp"
+#include "core/serializers/base_types.hpp"
+#include "core/serializers/main_serializer.hpp"
 
 #include "dmlf/colearn/abstract_message_controller.hpp"
 #include "dmlf/collective_learning/utilities/type_map.hpp"
@@ -31,12 +33,12 @@ namespace dmlf {
 namespace collective_learning {
 namespace utilities {
 
-class TypedUpdateAdaptor
+class TypedMsgControllerlWrapper
 {
 public:
   using MessageControllerPtr = std::shared_ptr<colearn::AbstractMessageController>;
 
-  explicit TypedUpdateAdaptor(MessageControllerPtr msg_ctrl)
+  explicit TypedMsgControllerlWrapper(MessageControllerPtr msg_ctrl)
     : msg_ctrl_{std::move(msg_ctrl)}
   {}
 
@@ -86,11 +88,11 @@ public:
     return Deserialize<T>(bytes);
   }
 
-  virtual ~TypedUpdateAdaptor()                       = default;
-  TypedUpdateAdaptor(TypedUpdateAdaptor const &other) = delete;
-  TypedUpdateAdaptor(TypedUpdateAdaptor &&other)      = delete;
-  TypedUpdateAdaptor &operator=(TypedUpdateAdaptor const &other) = delete;
-  TypedUpdateAdaptor &operator=(TypedUpdateAdaptor &&other) = delete;
+  virtual ~TypedMsgControllerlWrapper()                               = default;
+  TypedMsgControllerlWrapper(TypedMsgControllerlWrapper const &other) = default;
+  TypedMsgControllerlWrapper(TypedMsgControllerlWrapper &&other)      = default;
+  TypedMsgControllerlWrapper &operator=(TypedMsgControllerlWrapper const &other) = default;
+  TypedMsgControllerlWrapper &operator=(TypedMsgControllerlWrapper &&other) = default;
 
 private:
   using Bytes = colearn::AbstractMessageController::Bytes;

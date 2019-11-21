@@ -16,11 +16,12 @@
 //
 //------------------------------------------------------------------------------
 
+#include "dmlf/colearn/abstract_message_controller.hpp"
 #include "dmlf/collective_learning/client_algorithm.hpp"
 #include "dmlf/collective_learning/utilities/mnist_client_utilities.hpp"
+#include "dmlf/collective_learning/utilities/muddle_message_controller_utilities.hpp"
+#include "dmlf/collective_learning/utilities/typed_msg_controller_wrapper.hpp"
 #include "dmlf/collective_learning/utilities/utilities.hpp"
-#include "dmlf/deprecated/muddle_learner_networker.hpp"
-#include "dmlf/deprecated/simple_cycling_algorithm.hpp"
 #include "json/document.hpp"
 #include "math/tensor.hpp"
 
@@ -38,6 +39,8 @@ using DataType         = fetch::fixed_point::FixedPoint<32, 32>;
 using TensorType       = fetch::math::Tensor<DataType>;
 using VectorTensorType = std::vector<TensorType>;
 using SizeType         = fetch::math::SizeType;
+using MessageControllerPtr =
+    std::shared_ptr<fetch::dmlf::collective_learning::utilities::TypedMsgControllerlWrapper>;
 
 int main(int argc, char **argv)
 {
@@ -50,7 +53,7 @@ int main(int argc, char **argv)
     return 1;
   }
 
-  auto networker_config = std::string(argv[2]);
+  auto networker_config = fetch::json::JSONDocument(std::string(argv[2]));
   int  instance_number  = std::atoi(argv[3]);
 
   fetch::json::JSONDocument                                doc;
@@ -64,6 +67,8 @@ int main(int argc, char **argv)
   auto n_peers        = doc["n_peers"].As<SizeType>();
   auto test_set_ratio = doc["test_set_ratio"].As<float>();
 
+  FETCH_UNUSED(n_peers);
+
   /**
    * Prepare environment
    */
@@ -72,12 +77,10 @@ int main(int argc, char **argv)
   // Create console mutex
   std::shared_ptr<std::mutex> console_mutex_ptr = std::make_shared<std::mutex>();
 
-  // Create networker and assign shuffle algorithm
-  auto networker = std::make_shared<fetch::dmlf::deprecated_MuddleLearnerNetworker>(
-      networker_config, instance_number);
-  networker->Initialize<fetch::dmlf::deprecated_Update<TensorType>>();
-  networker->SetShuffleAlgorithm(
-      std::make_shared<fetch::dmlf::SimpleCyclingAlgorithm>(networker->GetPeerCount(), n_peers));
+  // Create networker
+  MessageControllerPtr networker =
+      fetch::dmlf::collective_learning::utilities::MakeMuddleMessageControllerFromJson(
+          networker_config);
 
   // Create learning client
   auto client = fetch::dmlf::collective_learning::utilities::MakeMNISTClient<TensorType>(

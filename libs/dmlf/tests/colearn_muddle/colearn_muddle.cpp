@@ -24,7 +24,7 @@
 #include "crypto/ecdsa.hpp"
 #include "dmlf/colearn/muddle_learner_networker_impl.hpp"
 #include "dmlf/colearn/update_store.hpp"
-#include "dmlf/collective_learning/utilities/typed_update_adaptor.hpp"
+#include "dmlf/collective_learning/utilities/typed_msg_controller_wrapper.hpp"
 #include "math/matrix_operations.hpp"
 #include "math/tensor.hpp"
 #include "muddle/muddle_interface.hpp"
@@ -41,7 +41,7 @@ using DataType   = fetch::fixed_point::FixedPoint<32, 32>;
 using TensorType = fetch::math::Tensor<DataType>;
 
 using LNBase   = fetch::dmlf::colearn::AbstractMessageController;
-using LNBaseT  = fetch::dmlf::collective_learning::utilities::TypedUpdateAdaptor;
+using LNBaseT  = fetch::dmlf::collective_learning::utilities::TypedMsgControllerlWrapper;
 using LN       = fetch::dmlf::colearn::MuddleLearnerNetworkerImpl;
 using LNBaseP  = std::shared_ptr<LNBase>;
 using LNBaseTP = std::shared_ptr<LNBaseT>;

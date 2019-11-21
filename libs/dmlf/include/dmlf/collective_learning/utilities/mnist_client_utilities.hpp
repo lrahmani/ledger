@@ -18,7 +18,6 @@
 //------------------------------------------------------------------------------
 
 #include "dmlf/collective_learning/collective_learning_client.hpp"
-#include "dmlf/deprecated/abstract_learner_networker.hpp"
 #include "ml/dataloaders/tensor_dataloader.hpp"
 #include "ml/layers/fully_connected.hpp"
 #include "ml/meta/ml_type_traits.hpp"
@@ -85,7 +84,7 @@ std::shared_ptr<fetch::ml::model::Sequential<TensorType>> MakeMNistModel(
  * @param images
  * @param labels
  * @param test_set_ratio
- * @param networker
+ * @param message_controller
  * @param console_mutex_ptr
  * @return
  */
@@ -95,12 +94,13 @@ MakeMNISTClient(
     std::string const &                                                        id,
     fetch::dmlf::collective_learning::ClientParams<typename TensorType::Type> &client_params,
     std::string const &images, std::string const &labels, float test_set_ratio,
-    std::shared_ptr<deprecated_AbstractLearnerNetworker> networker,
-    std::shared_ptr<std::mutex>                          console_mutex_ptr)
+    typename CollectiveLearningClient<TensorType>::MessageControllerPtr message_controller,
+    std::shared_ptr<std::mutex>                                         console_mutex_ptr)
 {
   // set up the client first
-  auto client = std::make_shared<CollectiveLearningClient<TensorType>>(id, client_params, networker,
-                                                                       console_mutex_ptr);
+  // set up updates types to be exchanged in the collaborative learning
+  auto client = std::make_shared<CollectiveLearningClient<TensorType>>(
+      id, client_params, message_controller, console_mutex_ptr);
 
   // build an mnist model for each algorithm in the client
   auto algorithms = client->GetAlgorithms();

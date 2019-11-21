@@ -16,11 +16,12 @@
 //
 //------------------------------------------------------------------------------
 
+#include "dmlf/colearn/abstract_message_controller.hpp"
 #include "dmlf/collective_learning/collective_learning_client.hpp"
 #include "dmlf/collective_learning/utilities/mnist_client_utilities.hpp"
+#include "dmlf/collective_learning/utilities/muddle_message_controller_utilities.hpp"
+#include "dmlf/collective_learning/utilities/typed_msg_controller_wrapper.hpp"
 #include "dmlf/collective_learning/utilities/utilities.hpp"
-#include "dmlf/deprecated/local_learner_networker.hpp"
-#include "dmlf/deprecated/simple_cycling_algorithm.hpp"
 #include "json/document.hpp"
 #include "math/tensor.hpp"
 
@@ -37,6 +38,8 @@ using DataType         = fetch::fixed_point::FixedPoint<32, 32>;
 using TensorType       = fetch::math::Tensor<DataType>;
 using VectorTensorType = std::vector<TensorType>;
 using SizeType         = fetch::math::SizeType;
+using MessageControllerPtr =
+    std::shared_ptr<fetch::dmlf::collective_learning::utilities::TypedMsgControllerlWrapper>;
 
 int main(int argc, char **argv)
 {
@@ -64,29 +67,21 @@ int main(int argc, char **argv)
   auto synchronise    = doc["synchronise"].As<bool>();
   auto test_set_ratio = doc["test_set_ratio"].As<float>();
 
+  FETCH_UNUSED(n_peers);
+
   std::shared_ptr<std::mutex> console_mutex_ptr = std::make_shared<std::mutex>();
 
-  // Set up networkers
-  std::vector<std::shared_ptr<fetch::dmlf::deprecated_LocalLearnerNetworker>> networkers(n_clients);
-  for (SizeType i(0); i < n_clients; ++i)
-  {
-    networkers.at(i) = std::make_shared<fetch::dmlf::deprecated_LocalLearnerNetworker>();
-    networkers.at(i)->Initialize<fetch::dmlf::deprecated_Update<TensorType>>();
-  }
-  for (SizeType i(0); i < n_clients; ++i)
-  {
-    networkers.at(i)->AddPeers(networkers);
-    networkers.at(i)->SetShuffleAlgorithm(std::make_shared<fetch::dmlf::SimpleCyclingAlgorithm>(
-        networkers.at(i)->GetPeerCount(), n_peers));
-  }
+  // Create message controllers
+  std::vector<MessageControllerPtr> message_ctrls =
+      utilities::MakeLocalMuddleMessageControllersSwarm(n_clients);
 
   // Create training clients
   std::vector<std::shared_ptr<CollectiveLearningClient<TensorType>>> clients(n_clients);
   for (SizeType i{0}; i < n_clients; ++i)
   {
     clients.at(i) = fetch::dmlf::collective_learning::utilities::MakeMNISTClient<TensorType>(
-        std::to_string(i), client_params, data_file, labels_file, test_set_ratio, networkers.at(i),
-        console_mutex_ptr);
+        std::to_string(i), client_params, data_file, labels_file, test_set_ratio,
+        message_ctrls.at(i), console_mutex_ptr);
   }
 
   /**

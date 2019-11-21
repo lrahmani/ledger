@@ -16,10 +16,11 @@
 //
 //------------------------------------------------------------------------------
 
+#include "dmlf/colearn/abstract_message_controller.hpp"
 #include "dmlf/collective_learning/client_word2vec_algorithm.hpp"
+#include "dmlf/collective_learning/utilities/muddle_message_controller_utilities.hpp"
+#include "dmlf/collective_learning/utilities/typed_msg_controller_wrapper.hpp"
 #include "dmlf/collective_learning/utilities/utilities.hpp"
-#include "dmlf/deprecated/local_learner_networker.hpp"
-#include "dmlf/deprecated/simple_cycling_algorithm.hpp"
 #include "json/document.hpp"
 #include "math/tensor.hpp"
 
@@ -39,6 +40,8 @@ using DataType         = fetch::fixed_point::FixedPoint<32, 32>;
 using TensorType       = fetch::math::Tensor<DataType>;
 using VectorTensorType = std::vector<TensorType>;
 using SizeType         = fetch::math::SizeType;
+using MessageControllerPtr =
+    std::shared_ptr<fetch::dmlf::collective_learning::utilities::TypedMsgControllerlWrapper>;
 
 std::vector<std::string> SplitTrainingData(std::string const &train_file, SizeType n_clients)
 {
@@ -160,6 +163,8 @@ int main(int argc, char **argv)
   auto        synchronise     = doc["synchronise"].As<bool>();
   std::string output_csv_file = doc["results"].As<std::string>();
 
+  FETCH_UNUSED(n_peers);
+
   /**
    * Prepare environment
    */
@@ -168,23 +173,12 @@ int main(int argc, char **argv)
   std::cout << "FETCH Distributed Word2vec Demo" << std::endl;
 
   std::vector<std::string> client_data = SplitTrainingData(data_file, n_clients);
-  std::vector<std::shared_ptr<CollectiveLearningClient<TensorType>>>          clients(n_clients);
-  std::vector<std::shared_ptr<fetch::dmlf::deprecated_LocalLearnerNetworker>> networkers(n_clients);
+  std::vector<std::shared_ptr<CollectiveLearningClient<TensorType>>> clients(n_clients);
 
-  // Create networkers
-  for (SizeType i(0); i < n_clients; ++i)
-  {
-    networkers.at(i) = std::make_shared<fetch::dmlf::deprecated_LocalLearnerNetworker>();
-    networkers.at(i)->Initialize<fetch::dmlf::deprecated_Update<TensorType>>();
-  }
-
-  // Add peers to networkers and initialise shuffle algorithm
-  for (SizeType i(0); i < n_clients; ++i)
-  {
-    networkers.at(i)->AddPeers(networkers);
-    networkers.at(i)->SetShuffleAlgorithm(std::make_shared<fetch::dmlf::SimpleCyclingAlgorithm>(
-        networkers.at(i)->GetPeerCount(), n_peers));
-  }
+  // Create message controllers
+  std::vector<MessageControllerPtr> message_ctrls =
+      fetch::dmlf::collective_learning::utilities::MakeLocalMuddleMessageControllersSwarm(
+          n_clients);
 
   // Instantiate n_clients clients
   for (SizeType i(0); i < n_clients; ++i)
@@ -192,7 +186,7 @@ int main(int argc, char **argv)
     Word2VecTrainingParams<DataType> cp(*word2vec_client_params);
     cp.data       = {client_data.at(i)};
     clients.at(i) = std::make_shared<CollectiveLearningClient<TensorType>>(
-        std::to_string(i), cp, networkers.at(i), console_mutex_ptr, false);
+        std::to_string(i), cp, message_ctrls.at(i), console_mutex_ptr, false);
 
     clients.at(i)->BuildAlgorithms<ClientWord2VecAlgorithm<TensorType>>(cp, console_mutex_ptr);
   }

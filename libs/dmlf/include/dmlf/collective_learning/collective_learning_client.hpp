@@ -22,7 +22,6 @@
 #include "dmlf/collective_learning/client_algorithm.hpp"
 #include "dmlf/collective_learning/client_algorithm_controller.hpp"
 #include "dmlf/collective_learning/client_params.hpp"
-#include "dmlf/deprecated/abstract_learner_networker.hpp"
 #include "dmlf/deprecated/update.hpp"
 
 #include <condition_variable>
@@ -41,13 +40,15 @@ namespace collective_learning {
 template <class TensorType>
 class CollectiveLearningClient
 {
+public:
   using DataType                = typename TensorType::Type;
   using AlgorithmControllerType = ClientAlgorithmController<TensorType>;
   using AlgorithmPtrType        = std::shared_ptr<ClientAlgorithm<TensorType>>;
+  using MessageControllerPtr =
+      typename ClientAlgorithmController<TensorType>::MessageControllerInterfacePtr;
 
-public:
   CollectiveLearningClient(std::string id, ClientParams<DataType> const &client_params,
-                           std::shared_ptr<dmlf::deprecated_AbstractLearnerNetworker> networker_ptr,
+                           MessageControllerPtr        msg_ctrl_ptr,
                            std::shared_ptr<std::mutex> console_mutex_ptr,
                            bool                        build_algorithms = true);
   virtual ~CollectiveLearningClient() = default;
@@ -71,13 +72,12 @@ protected:
 
 template <class TensorType>
 CollectiveLearningClient<TensorType>::CollectiveLearningClient(
-    std::string id, ClientParams<DataType> const &client_params,
-    std::shared_ptr<dmlf::deprecated_AbstractLearnerNetworker> networker_ptr,
+    std::string id, ClientParams<DataType> const &client_params, MessageControllerPtr msg_ctrl_ptr,
     std::shared_ptr<std::mutex> console_mutex_ptr, bool build_algorithms)
   : id_(std::move(id))
 {
   // build algorithm controller
-  algorithm_controller_ = std::make_shared<AlgorithmControllerType>(networker_ptr);
+  algorithm_controller_ = std::make_shared<AlgorithmControllerType>(msg_ctrl_ptr);
 
   if (build_algorithms)
   {

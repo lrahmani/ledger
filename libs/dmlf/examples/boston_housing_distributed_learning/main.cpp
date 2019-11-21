@@ -18,10 +18,11 @@
 
 #include "dmlf/collective_learning/client_algorithm.hpp"
 #include "dmlf/collective_learning/utilities/boston_housing_client_utilities.hpp"
-
 #include "dmlf/collective_learning/utilities/utilities.hpp"
-#include "dmlf/deprecated/local_learner_networker.hpp"
-#include "dmlf/deprecated/simple_cycling_algorithm.hpp"
+
+#include "dmlf/colearn/abstract_message_controller.hpp"
+#include "dmlf/collective_learning/utilities/muddle_message_controller_utilities.hpp"
+#include "dmlf/collective_learning/utilities/typed_msg_controller_wrapper.hpp"
 #include "math/matrix_operations.hpp"
 #include "math/tensor.hpp"
 #include "math/utilities/ReadCSV.hpp"
@@ -41,6 +42,8 @@ using DataType         = fetch::fixed_point::FixedPoint<32, 32>;
 using TensorType       = fetch::math::Tensor<DataType>;
 using VectorTensorType = std::vector<TensorType>;
 using SizeType         = fetch::math::SizeType;
+using MessageControllerPtr =
+    std::shared_ptr<fetch::dmlf::collective_learning::utilities::TypedMsgControllerlWrapper>;
 
 int main(int argc, char **argv)
 {
@@ -67,6 +70,8 @@ int main(int argc, char **argv)
   auto seed           = doc["random_seed"].As<SizeType>();
   auto test_set_ratio = doc["test_set_ratio"].As<float>();
 
+  FETCH_UNUSED(n_peers);
+
   std::shared_ptr<std::mutex> console_mutex_ptr = std::make_shared<std::mutex>();
 
   // Load data
@@ -80,21 +85,9 @@ int main(int argc, char **argv)
   std::vector<TensorType> data_tensors  = utilities::Split(data_tensor, n_clients);
   std::vector<TensorType> label_tensors = utilities::Split(label_tensor, n_clients);
 
-  // Create networkers
-  std::vector<std::shared_ptr<fetch::dmlf::deprecated_LocalLearnerNetworker>> networkers(n_clients);
-  for (SizeType i(0); i < n_clients; ++i)
-  {
-    networkers[i] = std::make_shared<fetch::dmlf::deprecated_LocalLearnerNetworker>();
-    networkers[i]->Initialize<fetch::dmlf::deprecated_Update<TensorType>>();
-  }
-
-  // Add peers to networkers and initialise shuffle algorithm
-  for (SizeType i(0); i < n_clients; ++i)
-  {
-    networkers[i]->AddPeers(networkers);
-    networkers[i]->SetShuffleAlgorithm(std::make_shared<fetch::dmlf::SimpleCyclingAlgorithm>(
-        networkers[i]->GetPeerCount(), n_peers));
-  }
+  // Create message controllers
+  std::vector<MessageControllerPtr> message_ctrls =
+      utilities::MakeLocalMuddleMessageControllersSwarm(n_clients);
 
   // Create training clients
   std::vector<std::shared_ptr<CollectiveLearningClient<TensorType>>> clients(n_clients);
@@ -104,7 +97,7 @@ int main(int argc, char **argv)
 
     clients[i] = fetch::dmlf::collective_learning::utilities::MakeBostonClient<TensorType>(
         std::to_string(i), client_params, data_tensors.at(i), label_tensors.at(i), test_set_ratio,
-        networkers.at(i), console_mutex_ptr);
+        message_ctrls.at(i), console_mutex_ptr);
   }
 
   /**

@@ -16,10 +16,11 @@
 //
 //------------------------------------------------------------------------------
 
+#include "dmlf/colearn/abstract_message_controller.hpp"
 #include "dmlf/collective_learning/client_word2vec_algorithm.hpp"
+#include "dmlf/collective_learning/utilities/muddle_message_controller_utilities.hpp"
+#include "dmlf/collective_learning/utilities/typed_msg_controller_wrapper.hpp"
 #include "dmlf/collective_learning/utilities/utilities.hpp"
-#include "dmlf/deprecated/muddle_learner_networker.hpp"
-#include "dmlf/deprecated/simple_cycling_algorithm.hpp"
 #include "json/document.hpp"
 #include "math/tensor.hpp"
 
@@ -38,6 +39,8 @@ using DataType         = fetch::fixed_point::FixedPoint<32, 32>;
 using TensorType       = fetch::math::Tensor<DataType>;
 using VectorTensorType = std::vector<TensorType>;
 using SizeType         = typename TensorType::SizeType;
+using MessageControllerPtr =
+    std::shared_ptr<fetch::dmlf::collective_learning::utilities::TypedMsgControllerlWrapper>;
 
 int main(int argc, char **argv)
 {
@@ -60,7 +63,7 @@ int main(int argc, char **argv)
           std::string(argv[1]), doc);
   auto word2vec_client_params = std::make_shared<Word2VecTrainingParams<DataType>>(client_params);
 
-  auto networker_config = std::string(argv[2]);
+  auto networker_config = fetch::json::JSONDocument(std::string(argv[2]));
   int  instance_number  = std::atoi(argv[3]);
 
   auto data_file                              = doc["data"].As<std::string>();
@@ -73,6 +76,8 @@ int main(int argc, char **argv)
   auto        n_rounds        = doc["n_rounds"].As<SizeType>();
   std::string output_csv_file = doc["results"].As<std::string>();
 
+  FETCH_UNUSED(n_peers);
+
   /**
    * Prepare environment
    */
@@ -82,12 +87,10 @@ int main(int argc, char **argv)
 
   std::string client_data = fetch::ml::utilities::ReadFile(data_file);
 
-  // Create networker and assign shuffle algorithm
-  auto networker = std::make_shared<fetch::dmlf::deprecated_MuddleLearnerNetworker>(
-      networker_config, instance_number);
-  networker->Initialize<fetch::dmlf::deprecated_Update<TensorType>>();
-  networker->SetShuffleAlgorithm(
-      std::make_shared<fetch::dmlf::SimpleCyclingAlgorithm>(networker->GetPeerCount(), n_peers));
+  // Create networker
+  MessageControllerPtr networker =
+      fetch::dmlf::collective_learning::utilities::MakeMuddleMessageControllerFromJson(
+          networker_config);
 
   // Create learning client
   Word2VecTrainingParams<DataType> cp(*word2vec_client_params);

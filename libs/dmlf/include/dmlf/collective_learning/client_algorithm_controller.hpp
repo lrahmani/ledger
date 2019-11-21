@@ -19,7 +19,8 @@
 
 #include <utility>
 
-#include "dmlf/deprecated/abstract_learner_networker.hpp"
+#include "dmlf/colearn/abstract_message_controller.hpp"
+#include "dmlf/collective_learning/utilities/typed_msg_controller_wrapper.hpp"
 #include "dmlf/deprecated/update.hpp"
 
 namespace fetch {
@@ -29,10 +30,10 @@ namespace collective_learning {
 template <class TensorType>
 class ClientAlgorithmController
 {
-  using UpdateType                    = fetch::dmlf::deprecated_Update<TensorType>;
-  using MessageControllerInterfacePtr = std::shared_ptr<dmlf::deprecated_AbstractLearnerNetworker>;
-
 public:
+  using UpdateType                    = fetch::dmlf::deprecated_Update<TensorType>;
+  using MessageControllerInterfacePtr = std::shared_ptr<utilities::TypedMsgControllerlWrapper>;
+
   explicit ClientAlgorithmController(MessageControllerInterfacePtr mci_ptr);
   virtual ~ClientAlgorithmController() = default;
 
@@ -76,7 +77,7 @@ template <typename TensorType>
 std::size_t ClientAlgorithmController<TensorType>::UpdateCount()
 {
   FETCH_LOCK(algorithm_controller_mutex);
-  return mci_ptr_->GetUpdateCount();
+  return mci_ptr_->GetUpdateCount<UpdateType>();
 }
 
 /**
