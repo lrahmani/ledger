@@ -75,6 +75,9 @@ MakeBostonClient(
 {
 
   // set up the client first
+  // set up the client first
+  message_controller->template RegisterUpdateType<fetch::dmlf::deprecated_Update<TensorType>>(
+      "gradients");
   auto client = std::make_shared<CollectiveLearningClient<TensorType>>(
       id, client_params, message_controller, console_mutex_ptr);
 

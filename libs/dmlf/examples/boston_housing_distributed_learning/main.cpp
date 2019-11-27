@@ -56,6 +56,8 @@ int main(int argc, char **argv)
     return 1;
   }
 
+  std::cout << "FETCH Distributed Boston Housing Demo" << std::endl;
+
   fetch::json::JSONDocument                                doc;
   fetch::dmlf::collective_learning::ClientParams<DataType> client_params =
       fetch::dmlf::collective_learning::utilities::ClientParamsFromJson<TensorType>(
@@ -87,7 +89,9 @@ int main(int argc, char **argv)
 
   // Create message controllers
   std::vector<MessageControllerPtr> message_ctrls =
-      utilities::MakeLocalMuddleMessageControllersSwarm(n_clients);
+      utilities::MakeLocalMuddleMessageControllersSwarm(n_clients, 1.0, false);
+  
+  std::this_thread::sleep_for(std::chrono::seconds(30));
 
   // Create training clients
   std::vector<std::shared_ptr<CollectiveLearningClient<TensorType>>> clients(n_clients);

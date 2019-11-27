@@ -52,16 +52,16 @@ inline uint16_t random_port()
 
 inline void suppress_muddle_message_controller_logs()
 {
-  fetch::SetLogLevel("TCPServer", fetch::LogLevel::ERROR);
-  fetch::SetLogLevel("TCPClientImpl", fetch::LogLevel::ERROR);
-  fetch::SetLogLevel("Muddle:Test", fetch::LogLevel::ERROR);
-  fetch::SetLogLevel("MuddlePeers:Test", fetch::LogLevel::ERROR);
-  fetch::SetLogLevel("MuddlePeers:Test", fetch::LogLevel::ERROR);
-  fetch::SetLogLevel("Router:Test", fetch::LogLevel::ERROR);
-  fetch::SetLogLevel("DirectHandler:Test", fetch::LogLevel::ERROR);
-  fetch::SetLogLevel("NetworkManager", fetch::LogLevel::ERROR);
-  fetch::SetLogLevel("MuddleLearnerNetworkerImpl", fetch::LogLevel::ERROR);
-  fetch::SetLogLevel("MuddleOutboundUpdateTask", fetch::LogLevel::ERROR);
+  fetch::SetLogLevel("TCPServer", fetch::LogLevel::WARNING);
+  fetch::SetLogLevel("TCPClientImpl", fetch::LogLevel::WARNING);
+  fetch::SetLogLevel("Muddle:Test", fetch::LogLevel::WARNING);
+  fetch::SetLogLevel("MuddlePeers:Test", fetch::LogLevel::WARNING);
+  fetch::SetLogLevel("MuddlePeers:Test", fetch::LogLevel::WARNING);
+  fetch::SetLogLevel("Router:Test", fetch::LogLevel::WARNING);
+  fetch::SetLogLevel("DirectHandler:Test", fetch::LogLevel::WARNING);
+  fetch::SetLogLevel("NetworkManager", fetch::LogLevel::WARNING);
+  fetch::SetLogLevel("MuddleLearnerNetworkerImpl", fetch::LogLevel::WARNING);
+  fetch::SetLogLevel("MuddleOutboundUpdateTask", fetch::LogLevel::WARNING);
 }
 
 MessageControllerPtr MakeMuddleMessageControllerFromJson(fetch::json::JSONDocument const &config,

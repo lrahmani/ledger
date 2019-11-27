@@ -106,7 +106,7 @@ MuddleLearnerNetworkerImpl::MuddleLearnerNetworkerImpl(const std::string &priv,
     ident->Load(fetch::byte_array::FromBase64(priv));
   }
 
-  netm_ = std::make_shared<NetMan>("LrnrNet", 4);
+  netm_ = std::make_shared<NetMan>("LrnrNet", 16);
   netm_->Start();
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
